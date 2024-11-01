@@ -1,0 +1,292 @@
+---
+MainSourceFile:  '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/dpct_output/PageQueueVA.dp.hpp'
+Replacements:
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          0
+    Length:          0
+    ReplacementText: "#include <sycl/sycl.hpp>\n#include <dpct/dpct.hpp>\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1312
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1328
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1339
+    Length:          9
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1452
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1468
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1655
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1671
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1846
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1862
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1916
+    Length:          0
+    ReplacementText: ",\n                           const sycl::nd_item<3> &item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1960
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          1976
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2156
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2172
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2276
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2292
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2369
+    Length:          0
+    ReplacementText: ",\n                               const sycl::stream &stream_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2413
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2429
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2589
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2605
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2720
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Offset:          2736
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+MainSourceFilesDigest:
+  - MainSourceFile:  '/home/rks/github/Ouroboros-SYCL/include/device/queues/page/PageQueueVA.cuh'
+    Digest:          a3634c96e3e84177a416630300ae92f4
+DpctVersion:     2025.0.0
+MainHelperFileName: ''
+USMLevel:        ''
+FeatureMap:      {}
+CompileTargets:  {}
+OptionMap:
+  AnalysisScopePath:
+    Value:           '/home/rks/github/Ouroboros-SYCL/include/device/queues/page'
+    Specified:       false
+  AsyncHandler:
+    Value:           'false'
+    Specified:       false
+  BuildScript:
+    Value:           '0'
+    Specified:       false
+  CodePinEnabled:
+    Value:           'false'
+    Specified:       false
+  CommentsEnabled:
+    Value:           'false'
+    Specified:       false
+  CompilationsDir:
+    Value:           ''
+    Specified:       false
+  CtadEnabled:
+    Value:           'false'
+    Specified:       false
+  EnablepProfiling:
+    Value:           'false'
+    Specified:       false
+  ExperimentalFlag:
+    Value:           '0'
+    Specified:       false
+  ExplicitNamespace:
+    Value:           '20'
+    Specified:       false
+  ExtensionDDFlag:
+    Value:           '0'
+    Specified:       false
+  ExtensionDEFlag:
+    Value:           '4294967295'
+    Specified:       false
+  HelperFuncPreferenceFlag:
+    Value:           '0'
+    Specified:       false
+  NDRangeDim:
+    Value:           '3'
+    Specified:       false
+  NoDRYPattern:
+    Value:           'false'
+    Specified:       false
+  OptimizeMigration:
+    Value:           'false'
+    Specified:       false
+  ProcessAll:
+    Value:           'false'
+    Specified:       false
+  RuleFile:
+    Value:           ''
+    Specified:       false
+  SyclNamedLambda:
+    Value:           'false'
+    Specified:       false
+  UseSYCLCompat:
+    Value:           'false'
+    Specified:       false
+  UsmLevel:
+    Value:           '1'
+    Specified:       false
+...

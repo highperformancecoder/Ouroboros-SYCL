@@ -61,28 +61,28 @@ struct Statistics
 //
 inline std::ostream& writeGPUInfo(std::ostream& file)
 {
-	int cudaDevice;
-	cudaGetDevice(&cudaDevice);
-	cudaDeviceProp prop;
-	cudaGetDeviceProperties(&prop, cudaDevice);
-	std::cout << "Going to use " << prop.name << " " << prop.major << "." << prop.minor << "\n";
-
-	file << "name;cc;num_multiprocessors;warp_size;max_threads_per_mp;regs_per_mp;shared_memory_per_mp;"
-	"total_constant_memory;total_global_memory;clock_rate;max_threads_per_block;max_regs_per_block;max_shared_memory_per_block\n"
-		<< prop.name << ';'
-		<< prop.major << '.'
-		<< prop.minor << ';'
-		<< prop.multiProcessorCount << ';'
-		<< prop.warpSize<< ';'
-		<< prop.maxThreadsPerMultiProcessor << ';'
-		<< prop.regsPerMultiprocessor << ';'
-		<< prop.sharedMemPerMultiprocessor << ';'
-		<< prop.totalConstMem << ';'
-		<< prop.totalGlobalMem << ';'
-		<< prop.clockRate * 1000 << ';'
-		<< prop.maxThreadsPerBlock << ';'
-		<< prop.regsPerBlock << ';'
-		<< prop.sharedMemPerBlock
-		<< std::endl;
+//	int cudaDevice;
+//	cudaGetDevice(&cudaDevice);
+//	cudaDeviceProp prop;
+//	cudaGetDeviceProperties(&prop, cudaDevice);
+//	std::cout << "Going to use " << prop.name << " " << prop.major << "." << prop.minor << "\n";
+//
+//	file << "name;cc;num_multiprocessors;warp_size;max_threads_per_mp;regs_per_mp;shared_memory_per_mp;"
+//	"total_constant_memory;total_global_memory;clock_rate;max_threads_per_block;max_regs_per_block;max_shared_memory_per_block\n"
+//		<< prop.name << ';'
+//		<< prop.major << '.'
+//		<< prop.minor << ';'
+//		<< prop.multiProcessorCount << ';'
+//		<< prop.warpSize<< ';'
+//		<< prop.maxThreadsPerMultiProcessor << ';'
+//		<< prop.regsPerMultiprocessor << ';'
+//		<< prop.sharedMemPerMultiprocessor << ';'
+//		<< prop.totalConstMem << ';'
+//		<< prop.totalGlobalMem << ';'
+//		<< prop.clockRate * 1000 << ';'
+//		<< prop.maxThreadsPerBlock << ';'
+//		<< prop.regsPerBlock << ';'
+//		<< prop.sharedMemPerBlock
+//		<< std::endl;
 	return file;
 }

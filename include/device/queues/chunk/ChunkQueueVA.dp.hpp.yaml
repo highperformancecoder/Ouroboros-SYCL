@@ -1,0 +1,301 @@
+---
+MainSourceFile:  '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/dpct_output/ChunkQueueVA.dp.hpp'
+Replacements:
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          0
+    Length:          0
+    ReplacementText: "#include <sycl/sycl.hpp>\n#include <dpct/dpct.hpp>\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1386
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1402
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1589
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1605
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1616
+    Length:          9
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1690
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1706
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1879
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1895
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1949
+    Length:          0
+    ReplacementText: ",\n                           const sycl::nd_item<3> &item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          1993
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2009
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2189
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2205
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2265
+    Length:          0
+    ReplacementText: ",\n                                 const sycl::nd_item<3> &item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2309
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2325
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2446
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2462
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2622
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2638
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2799
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2815
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Offset:          2969
+    Length:          0
+    ReplacementText: ",\n                                   const sycl::stream &stream_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+MainSourceFilesDigest:
+  - MainSourceFile:  '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVA.cuh'
+    Digest:          480a0ebf8196b53ff34f361f3c7288fe
+DpctVersion:     2025.0.0
+MainHelperFileName: ''
+USMLevel:        ''
+FeatureMap:      {}
+CompileTargets:  {}
+OptionMap:
+  AnalysisScopePath:
+    Value:           '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk'
+    Specified:       false
+  AsyncHandler:
+    Value:           'false'
+    Specified:       false
+  BuildScript:
+    Value:           '0'
+    Specified:       false
+  CodePinEnabled:
+    Value:           'false'
+    Specified:       false
+  CommentsEnabled:
+    Value:           'false'
+    Specified:       false
+  CompilationsDir:
+    Value:           ''
+    Specified:       false
+  CtadEnabled:
+    Value:           'false'
+    Specified:       false
+  EnablepProfiling:
+    Value:           'false'
+    Specified:       false
+  ExperimentalFlag:
+    Value:           '0'
+    Specified:       false
+  ExplicitNamespace:
+    Value:           '20'
+    Specified:       false
+  ExtensionDDFlag:
+    Value:           '0'
+    Specified:       false
+  ExtensionDEFlag:
+    Value:           '4294967295'
+    Specified:       false
+  HelperFuncPreferenceFlag:
+    Value:           '0'
+    Specified:       false
+  NDRangeDim:
+    Value:           '3'
+    Specified:       false
+  NoDRYPattern:
+    Value:           'false'
+    Specified:       false
+  OptimizeMigration:
+    Value:           'false'
+    Specified:       false
+  ProcessAll:
+    Value:           'false'
+    Specified:       false
+  RuleFile:
+    Value:           ''
+    Specified:       false
+  SyclNamedLambda:
+    Value:           'false'
+    Specified:       false
+  UseSYCLCompat:
+    Value:           'false'
+    Specified:       false
+  UsmLevel:
+    Value:           '1'
+    Specified:       false
+...

@@ -1,0 +1,643 @@
+---
+MainSourceFile:  '/home/rks/github/Ouroboros-SYCL/include/dpct_output/Utility.dp.hpp'
+Replacements:
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          13
+    Length:          0
+    ReplacementText: "#include <sycl/sycl.hpp>\n#include <dpct/dpct.hpp>\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          33
+    Length:          0
+    ReplacementText: "\n#include <time.h>\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          53
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          69
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          162
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          178
+    Length:          0
+    ReplacementText: "/*\n\t\tDPCT1053:0: Migration of device assembly code is not supported.\n\t\t*/\n\t\t"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          274
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          290
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          358
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          375
+    Length:          0
+    ReplacementText: "/*\n\t\t\tDPCT1053:1: Migration of device assembly code is not supported.\n\t\t\t*/\n\t\t\t"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          473
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          489
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          598
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          614
+    Length:          0
+    ReplacementText: "/*\n\t\tDPCT1053:2: Migration of device assembly code is not supported.\n\t\t*/\n\t\t"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          710
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          726
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          820
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          836
+    Length:          0
+    ReplacementText: "/*\n\t\tDPCT1053:3: Migration of device assembly code is not supported.\n\t\t*/\n\t\t"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          930
+    Length:          0
+    ReplacementText: "\t/*\n\tDPCT1052:8: SYCL does not support the member access for a volatile qualified vector type. The volatile qualifier was removed. You may need to rewrite the code.\n\t*/\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          931
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          947
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          969
+    Length:          9
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          978
+    Length:          5
+    ReplacementText: 'sycl::uint4'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          997
+    Length:          5
+    ReplacementText: 'sycl::uint4'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1020
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1036
+    Length:          0
+    ReplacementText: "/*\n\t\tDPCT1053:4: Migration of device assembly code is not supported.\n\t\t*/\n\t\t"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1109
+    Length:          5
+    ReplacementText: 'src.x()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1121
+    Length:          5
+    ReplacementText: 'src.y()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1133
+    Length:          5
+    ReplacementText: 'src.z()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1145
+    Length:          5
+    ReplacementText: 'src.w()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1166
+    Length:          0
+    ReplacementText: "\t/*\n\tDPCT1052:9: SYCL does not support the member access for a volatile qualified vector type. The volatile qualifier was removed. You may need to rewrite the code.\n\t*/\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1167
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1183
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1205
+    Length:          9
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1214
+    Length:          5
+    ReplacementText: 'sycl::uint2'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1233
+    Length:          5
+    ReplacementText: 'sycl::uint2'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1256
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1272
+    Length:          0
+    ReplacementText: "/*\n\t\tDPCT1053:5: Migration of device assembly code is not supported.\n\t\t*/\n\t\t"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1337
+    Length:          5
+    ReplacementText: 'src.x()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1349
+    Length:          5
+    ReplacementText: 'src.y()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1378
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1394
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1417
+    Length:          0
+    ReplacementText: 'const sycl::nd_item<3> &item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1431
+    Length:          11
+    ReplacementText: 'item_ct1.get_local_id(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1467
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1483
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1541
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1561
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1612
+    Length:          0
+    ReplacementText: "\t\t/*\n\t\tDPCT1008:10: __nanosleep function is not defined in SYCL. This is a hardware-specific feature. Consult with your hardware vendor to find a replacement.\n\t\t*/\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1695
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1711
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1756
+    Length:          0
+    ReplacementText: ",\n                                  const sycl::nd_item<3> &item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1770
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1790
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1812
+    Length:          0
+    ReplacementText: "\t\t/*\n\t\tDPCT1086:6: __activemask() is migrated to 0xffffffff. You may need to adjust the code.\n\t\t*/\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1825
+    Length:          75
+    ReplacementText: 'dpct::match_any_over_sub_group(item_ct1.get_sub_group(), 0xffffffff, reinterpret_cast<unsigned long long>(ptr))'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1917
+    Length:          11
+    ReplacementText: 'dpct::ffs<int>(mask)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1943
+    Length:          0
+    ReplacementText: ' = 0'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1958
+    Length:          0
+    ReplacementText: item_ct1
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          1980
+    Length:          28
+    ReplacementText: 'dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(ptr, sycl::popcount(mask))'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          2010
+    Length:          0
+    ReplacementText: "\t\t/*\n\t\tDPCT1023:7: The SYCL sub-group does not support mask options for dpct::select_from_sub_group. You can specify \"--use-experimental-features=masked-sub-group-operation\" to use the experimental helper function to migrate __shfl_sync.\n\t\t*/\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          2018
+    Length:          30
+    ReplacementText: 'dpct::select_from_sub_group(item_ct1.get_sub_group(), res, leader)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Offset:          2065
+    Length:          37
+    ReplacementText: 'sycl::popcount(mask & ((1 << lane_id(item_ct1)) - 1))'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+MainSourceFilesDigest:
+  - MainSourceFile:  '/home/rks/github/Ouroboros-SYCL/include/Utility.cuh'
+    Digest:          236f8ddd3a08de9a2597c7638d6fc07e
+DpctVersion:     2025.0.0
+MainHelperFileName: ''
+USMLevel:        ''
+FeatureMap:      {}
+CompileTargets:  {}
+OptionMap:
+  AnalysisScopePath:
+    Value:           '/home/rks/github/Ouroboros-SYCL/include'
+    Specified:       false
+  AsyncHandler:
+    Value:           'false'
+    Specified:       false
+  BuildScript:
+    Value:           '0'
+    Specified:       false
+  CodePinEnabled:
+    Value:           'false'
+    Specified:       false
+  CommentsEnabled:
+    Value:           'false'
+    Specified:       false
+  CompilationsDir:
+    Value:           ''
+    Specified:       false
+  CtadEnabled:
+    Value:           'false'
+    Specified:       false
+  EnablepProfiling:
+    Value:           'false'
+    Specified:       false
+  ExperimentalFlag:
+    Value:           '0'
+    Specified:       false
+  ExplicitNamespace:
+    Value:           '20'
+    Specified:       false
+  ExtensionDDFlag:
+    Value:           '0'
+    Specified:       false
+  ExtensionDEFlag:
+    Value:           '4294967295'
+    Specified:       false
+  HelperFuncPreferenceFlag:
+    Value:           '0'
+    Specified:       false
+  NDRangeDim:
+    Value:           '3'
+    Specified:       false
+  NoDRYPattern:
+    Value:           'false'
+    Specified:       false
+  OptimizeMigration:
+    Value:           'false'
+    Specified:       false
+  ProcessAll:
+    Value:           'false'
+    Specified:       false
+  RuleFile:
+    Value:           ''
+    Specified:       false
+  SyclNamedLambda:
+    Value:           'false'
+    Specified:       false
+  UseSYCLCompat:
+    Value:           'false'
+    Specified:       false
+  UsmLevel:
+    Value:           '1'
+    Specified:       false
+...

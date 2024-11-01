@@ -1,0 +1,319 @@
+---
+MainSourceFile:  '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/dpct_output/ChunkQueueVL_impl.dp.hpp'
+Replacements:
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          37
+    Length:          27
+    ReplacementText: "#include <sycl/sycl.hpp>\n#include <dpct/dpct.hpp>\n#include \"ChunkQueueVL.dp.hpp\""
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          471
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          487
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          567
+    Length:          0
+    ReplacementText: ",\n                                                    const sycl::nd_item<3> &item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          576
+    Length:          10
+    ReplacementText: 'item_ct1.get_group(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          589
+    Length:          10
+    ReplacementText: 'item_ct1.get_local_range(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          602
+    Length:          11
+    ReplacementText: 'item_ct1.get_local_id(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          1366
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          1382
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          1592
+    Length:          15
+    ReplacementText: "/*\n\tDPCT1078:0: Consider replacing memory_order::acq_rel with memory_order::seq_cst for correctness if strong memory order restrictions are needed.\n\t*/\n\tsycl::atomic_fence(sycl::memory_order::acq_rel, sycl::memory_scope::device)"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          1889
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          1905
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          2383
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          2399
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          2485
+    Length:          0
+    ReplacementText: ",\n                                                          const sycl::nd_item<3> &item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          3120
+    Length:          21
+    ReplacementText: "/*\n\tDPCT1078:1: Consider replacing memory_order::acq_rel with memory_order::seq_cst for correctness if strong memory order restrictions are needed.\n\t*/\n\tsycl::atomic_fence(sycl::memory_order::acq_rel, sycl::memory_scope::work_group)"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          3302
+    Length:          21
+    ReplacementText: "/*\n\t\tDPCT1078:2: Consider replacing memory_order::acq_rel with memory_order::seq_cst for correctness if strong memory order restrictions are needed.\n\t\t*/\n\t\tsycl::atomic_fence(sycl::memory_order::acq_rel, sycl::memory_scope::work_group)"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          4272
+    Length:          35
+    ReplacementText: 'dpct::atomic_fetch_max<sycl::access::address_space::generic_space>(&front_, virtual_pos + 1)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          4827
+    Length:          11
+    ReplacementText: 'item_ct1.get_local_id(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          4840
+    Length:          10
+    ReplacementText: 'item_ct1.get_group(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          4890
+    Length:          8
+    ReplacementText: 'assert(0)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          5223
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          5239
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          7074
+    Length:          21
+    ReplacementText: "/*\n\tDPCT1078:3: Consider replacing memory_order::acq_rel with memory_order::seq_cst for correctness if strong memory order restrictions are needed.\n\t*/\n\tsycl::atomic_fence(sycl::memory_order::acq_rel, sycl::memory_scope::work_group)"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          7364
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          7380
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Offset:          7570
+    Length:          20
+    ReplacementText: 'dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(&back_, 1)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+MainSourceFilesDigest:
+  - MainSourceFile:  '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk/ChunkQueueVL_impl.cuh'
+    Digest:          3e7bc898855a644b50b2242bab1263ee
+DpctVersion:     2025.0.0
+MainHelperFileName: ''
+USMLevel:        ''
+FeatureMap:      {}
+CompileTargets:  {}
+OptionMap:
+  AnalysisScopePath:
+    Value:           '/home/rks/github/Ouroboros-SYCL/include/device/queues/chunk'
+    Specified:       false
+  AsyncHandler:
+    Value:           'false'
+    Specified:       false
+  BuildScript:
+    Value:           '0'
+    Specified:       false
+  CodePinEnabled:
+    Value:           'false'
+    Specified:       false
+  CommentsEnabled:
+    Value:           'false'
+    Specified:       false
+  CompilationsDir:
+    Value:           ''
+    Specified:       false
+  CtadEnabled:
+    Value:           'false'
+    Specified:       false
+  EnablepProfiling:
+    Value:           'false'
+    Specified:       false
+  ExperimentalFlag:
+    Value:           '0'
+    Specified:       false
+  ExplicitNamespace:
+    Value:           '20'
+    Specified:       false
+  ExtensionDDFlag:
+    Value:           '0'
+    Specified:       false
+  ExtensionDEFlag:
+    Value:           '4294967295'
+    Specified:       false
+  HelperFuncPreferenceFlag:
+    Value:           '0'
+    Specified:       false
+  NDRangeDim:
+    Value:           '3'
+    Specified:       false
+  NoDRYPattern:
+    Value:           'false'
+    Specified:       false
+  OptimizeMigration:
+    Value:           'false'
+    Specified:       false
+  ProcessAll:
+    Value:           'false'
+    Specified:       false
+  RuleFile:
+    Value:           ''
+    Specified:       false
+  SyclNamedLambda:
+    Value:           'false'
+    Specified:       false
+  UseSYCLCompat:
+    Value:           'false'
+    Specified:       false
+  UsmLevel:
+    Value:           '1'
+    Specified:       false
+...

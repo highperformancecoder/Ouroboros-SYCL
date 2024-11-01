@@ -1,13 +1,13 @@
 #pragma once
 
+#define DPCT_PROFILING_ENABLED
+#include <sycl/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <typeinfo>
 #include <memory>
 #include <vector>
 #include <limits>
-
-#include <cuda_runtime_api.h>
-#include <device_launch_parameters.h>
-#include <cuda_runtime.h>
+#include <cmath>
 
 using memory_t = int8_t;
 using index_t = uint32_t;

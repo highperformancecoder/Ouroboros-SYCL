@@ -1,17 +1,19 @@
 #pragma once
 
-#include "device/MemoryIndex.cuh"
-#include "device/queues/Queues.cuh"
+#include "device/MemoryIndex.dp.hpp"
+#include "device/queues/Queues.dp.hpp"
 #include "Statistics.h"
-#include "Helper.cuh"
+#include <sycl/sycl.hpp>
+#include <dpct/dpct.hpp>
+#include "Helper.dp.hpp"
 
 struct Memory
 {
 	Memory(){}
 	~Memory()
 	{
-		if(d_memory != nullptr)
-			HANDLE_ERROR(cudaFree(d_memory));
+//		if(d_memory != nullptr)
+//			HANDLE_ERROR(cudaFree(d_memory));
 	}
 	// Data
 	memory_t* d_memory{ nullptr };
@@ -82,17 +84,17 @@ struct OuroborosChunks : OuroborosBase
 
 	void reinitialize(float overallocation_factor);
 
-	__forceinline__ __device__ void* allocPage(size_t size);
+  __dpct_inline__ void *allocPage(size_t size, const sycl::nd_item<1>&);
 
-	__forceinline__ __device__ void freePage(MemoryIndex index);
+        __dpct_inline__ void freePage(MemoryIndex index);
 
-	__forceinline__ __device__ void initializeQueues();
+        __dpct_inline__ void initializeQueues();
 
-	__forceinline__ __device__ void printFreeResources();
+        __dpct_inline__ void printFreeResources();
 
-	template <bool QUEUECHUNK = false>
-	__forceinline__ __device__ void enqueueChunkForReuse(index_t chunk_index)
-	{
+        template <bool QUEUECHUNK = false>
+        __dpct_inline__ void enqueueChunkForReuse(index_t chunk_index)
+        {
 		if(!s_isBaseOuroboros && QUEUECHUNK)
 		{
 			d_base_chunk_reuse_queue->enqueue(chunk_index);
@@ -105,12 +107,12 @@ struct OuroborosChunks : OuroborosBase
 
 	// #################################################################################################
 	// Functionality
-	template <bool QUEUECHUNK = false>
-	__forceinline__ __device__ bool allocateChunk(index_t& chunk_index)
-	{
-		#ifdef __CUDA_ARCH__
+        template <bool QUEUECHUNK = false>
+        __dpct_inline__ bool allocateChunk(index_t &chunk_index)
+        {
+#ifdef DPCT_COMPATIBILITY_TEMP
 
-		if(statistics_enabled)
+                if(statistics_enabled)
 			atomicAdd(&stats.chunkAllocationCount, 1);
 
 		if(!s_isBaseOuroboros && QUEUECHUNK)
@@ -132,7 +134,7 @@ struct OuroborosChunks : OuroborosBase
 		chunk_locator->initChunkIndex(chunk_index);
 		return (chunk_index + (QUEUECHUNK ? 1 : ChunkAddFactor_)) < maxChunks;
 
-		#endif
+#endif
 	}
 
 	void printQueueStatistics()
@@ -178,13 +180,13 @@ struct OuroborosPages : OuroborosBase
 
 	void reinitialize(float overallocation_factor);
 
-    __forceinline__ __device__ void* allocPage(size_t size);
+  __dpct_inline__ void *allocPage(size_t size, const sycl::nd_item<1>&);
 
-	__forceinline__ __device__ void freePage(MemoryIndex index);
+        __dpct_inline__ void freePage(MemoryIndex index);
 
-	template <bool QUEUECHUNK = false>
-	__forceinline__ __device__ void enqueueChunkForReuse(index_t chunk_index)
-	{
+        template <bool QUEUECHUNK = false>
+        __dpct_inline__ void enqueueChunkForReuse(index_t chunk_index)
+        {
 		if(!s_isBaseOuroboros && QUEUECHUNK)
 		{
 			d_base_chunk_reuse_queue->enqueue(chunk_index);
@@ -197,12 +199,12 @@ struct OuroborosPages : OuroborosBase
 
 	// #################################################################################################
 	// Functionality
-	template <bool QUEUECHUNK = false>
-	__forceinline__ __device__ bool allocateChunk(index_t& chunk_index)
-	{
-		#ifdef __CUDA_ARCH__
+        template <bool QUEUECHUNK = false>
+        __dpct_inline__ bool allocateChunk(index_t &chunk_index)
+        {
+#ifdef DPCT_COMPATIBILITY_TEMP
 
-		if(statistics_enabled)
+                if(statistics_enabled)
 			atomicAdd(&stats.chunkAllocationCount, 1);
 
 		if(!s_isBaseOuroboros && QUEUECHUNK)
@@ -225,12 +227,12 @@ struct OuroborosPages : OuroborosBase
 		chunk_locator->initChunkIndex(chunk_index);
 		return (chunk_index + (QUEUECHUNK ? 1 : ChunkAddFactor_)) < maxChunks;
 
-		#endif
+#endif
 	}
 
-	__forceinline__ __device__ void initializeQueues();
+        __dpct_inline__ void initializeQueues();
 
-	void printQueueStatistics()
+        void printQueueStatistics()
 	{
 		printf("%sPage Queue Fill Rate\n%s", break_line_purple_s, break_line);
 		for(auto i = 0; i < NumberQueues_; ++i)
@@ -241,7 +243,7 @@ struct OuroborosPages : OuroborosBase
 		printf("%s", break_line_purple);
 	}
 
-	__forceinline__ __device__ void printFreeResources();
+        __dpct_inline__ void printFreeResources();
 };
 
 template<class... OUROBOROSES>
@@ -278,23 +280,27 @@ struct Ouroboros<OUROBOROS, OUROBOROSES...>
 	// -----------------------------------------------------------------------------------------------------------
 	// Public Interface
 
-	void initialize(size_t instantiation_size, size_t additionalSizeBeginning = 0, size_t additionalSizeEnd = 0);
+	void initialize(sycl::queue& syclQueue, size_t instantiation_size, size_t additionalSizeBeginning = 0, size_t additionalSizeEnd = 0);
 
 	void reinitialize(float overallocation_factor);
 
-	__forceinline__ __device__ void* malloc(size_t size);
+  __dpct_inline__ void *malloc(size_t size, const sycl::nd_item<1>&);
 
-	__forceinline__ __device__ void free(void* ptr);
+        __dpct_inline__ void free(void *ptr);
 
-	__forceinline__ __device__ void freePageRecursive(unsigned int page_size, MemoryIndex index);
+        __dpct_inline__ void freePageRecursive(unsigned int page_size,
+                                               MemoryIndex index);
 
-	__forceinline__ __device__ void enqueueInitialChunk(index_t queue_index, index_t chunk_index, int available_pages, index_t pages_per_chunk)
-	{
+        __dpct_inline__ void enqueueInitialChunk(index_t queue_index,
+                                                 index_t chunk_index,
+                                                 int available_pages,
+                                                 index_t pages_per_chunk)
+        {
 		// TODO: This should later relay to the correct mem man
 		memory_manager.d_storage_reuse_queue[queue_index].enqueueInitialChunk(&memory_manager, chunk_index, available_pages, pages_per_chunk);
 	}
 
-	MyType* getDeviceMemoryManager(){return reinterpret_cast<MyType*>(memory.d_memory);}
+	MyType* getDeviceMemoryManager() const {return reinterpret_cast<MyType*>(memory.d_memory);}
 
 	// -----------------------------------------------------------------------------------------------------------
 	// Private Interface
@@ -326,13 +332,13 @@ struct Ouroboros<OUROBOROS, OUROBOROSES...>
 		next_memory_manager.init(memory);
 	}
 
-	__forceinline__ __device__ void setMemoryPointer()
-	{
+        __dpct_inline__ void setMemoryPointer()
+        {
 		setMemory(&memory);
 	}
-	
-	__forceinline__ __device__ void setMemory(Memory* memory)
-	{
+
+        __dpct_inline__ void setMemory(Memory *memory)
+        {
 		memory_manager.d_memory = memory->d_memory;
 		memory_manager.d_data = memory->d_data;
 		memory_manager.next_free_chunk = &(memory->next_free_chunk);
@@ -341,14 +347,14 @@ struct Ouroboros<OUROBOROS, OUROBOROSES...>
 		next_memory_manager.setMemory(memory);
 	}
 
-	__forceinline__ __device__ void initQueues(IndexQueue* d_base_chunk_reuse);
+  __dpct_inline__ void initQueues(IndexQueue *d_base_chunk_reuse,const sycl::nd_item<1>&);
 
-	void printFreeResources();
+        void printFreeResources();
 
-	__forceinline__ __device__ void d_printResources();
+        __dpct_inline__ void d_printResources();
 
-	__forceinline__ __device__ bool validOuroborosPointer(void* ptr)
-	{
+        __dpct_inline__ bool validOuroborosPointer(void *ptr)
+        {
 		if(reinterpret_cast<unsigned long long>(ptr) > reinterpret_cast<unsigned long long>(memory.d_memory) 
 		&& reinterpret_cast<unsigned long long>(ptr) < (reinterpret_cast<unsigned long long>(memory.d_memory) + memory.allocationSize))
 			return true;
@@ -398,26 +404,27 @@ struct Ouroboros<>
 	void init(Memory* memory) {}
 	size_t totalMemoryManagerSize() {return 0ULL;}
 
-	__forceinline__ __device__ void* malloc(size_t size)
-	{
-	#ifdef __CUDA_ARCH__
-		return ::malloc(AllocationHelper::getNextPow2(size));
-	#else
+  __dpct_inline__ void *malloc(size_t size, const sycl::nd_item<1>&)
+        {
+#ifdef DPCT_COMPATIBILITY_TEMP
+                return ::malloc(AllocationHelper::getNextPow2(size));
+#else
 		return nullptr;
 	#endif
 	}
 
-	__forceinline__ __device__ void freePageRecursive(unsigned int page_size, MemoryIndex index)
-	{
-		if(!FINAL_RELEASE)
-			printf("Spilled into empty Ouroboros, this should not happend| Page Size: %u | Chunk Index: %u | Page Index: %u\n", page_size, index.getChunkIndex(), index.getPageIndex());
-		__trap();
-	}
+        __dpct_inline__ void freePageRecursive(unsigned int page_size,
+                                               MemoryIndex index)
+        {
+//		if(!FINAL_RELEASE)
+//			printf("Spilled into empty Ouroboros, this should not happend| Page Size: %u | Chunk Index: %u | Page Index: %u\n", page_size, index.getChunkIndex(), index.getPageIndex());
+                assert(0);
+        }
 
-	__forceinline__ __device__ void setMemory(Memory* memory){}
-	__forceinline__ __device__ void initQueues(IndexQueue* d_base_chunk_reuse) {}
-	__forceinline__ __device__ void d_printResources(){}
-	void printFreeResources(){}
+        __dpct_inline__ void setMemory(Memory *memory) {}
+  __dpct_inline__ void initQueues(IndexQueue *d_base_chunk_reuse, const sycl::nd_item<1>&) {}
+        __dpct_inline__ void d_printResources() {}
+        void printFreeResources(){}
 	static constexpr int totalNumberVirtualQueues(){return 0;}
 	static constexpr int totalNumberQueues(){return 0;}
 	static constexpr bool checkSizeConstraints() { return true;}

@@ -1,3 +1,6 @@
 build
 async_build
 .vscode
+*~
+*.o
+dpct_output/**
