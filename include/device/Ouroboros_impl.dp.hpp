@@ -111,7 +111,6 @@ __dpct_inline__ void Ouroboros<OUROBOROS, OUROBOROSES...>::free(const Desc& d, v
 	{
 		if(!FINAL_RELEASE && printDebug)
                   d.out<<"Freeing CUDA Memory!\n";
-		::free(ptr);
 		return;
 	}
 	auto chunk_index = ChunkBase::getIndexFromPointer(memory.d_data, ptr);

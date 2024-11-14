@@ -406,18 +406,16 @@ struct Ouroboros<>
 
   __dpct_inline__ void *malloc(const Desc&,size_t size)
         {
-#ifdef DPCT_COMPATIBILITY_TEMP
-                return ::malloc(AllocationHelper::getNextPow2(size));
-#else
-		return nullptr;
-	#endif
+          return nullptr;
 	}
 
-  __dpct_inline__ void freePageRecursive(const Desc&,unsigned int page_size,
+  __dpct_inline__ void freePageRecursive(const Desc& d,unsigned int page_size,
                                                MemoryIndex index)
         {
-//		if(!FINAL_RELEASE)
-//			printf("Spilled into empty Ouroboros, this should not happend| Page Size: %u | Chunk Index: %u | Page Index: %u\n", page_size, index.getChunkIndex(), index.getPageIndex());
+		if(!FINAL_RELEASE)
+                  d.out<<"Spilled into empty Ouroboros, this should not happend| Page Size: "<<page_size<<
+                    " | Chunk Index: "<<index.getChunkIndex()<<
+                    " | Page Index: "<<index.getPageIndex()<<sycl::endl;
                 assert(0);
         }
 
