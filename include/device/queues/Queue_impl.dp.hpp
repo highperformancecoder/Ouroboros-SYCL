@@ -11,12 +11,12 @@ __dpct_inline__ void IndexQueue::resetQueue()
 	back_ = 0;
 }
 
-__dpct_inline__ void IndexQueue::init(const sycl::nd_item<1> &item_ct1)
+__dpct_inline__ void IndexQueue::init(const Desc& d)
 {
-        for (int i = item_ct1.get_group(0) * item_ct1.get_local_range(0) +
-                     item_ct1.get_local_id(0);
+        for (int i = d.item.get_group(0) * d.item.get_local_range(0) +
+                     d.item.get_local_id(0);
              i < size_;
-             i += item_ct1.get_local_range(0) * item_ct1.get_group_range(0))
+             i += d.item.get_local_range(0) * d.item.get_group_range(0))
         {
 		queue_[i] = DeletionMarker<index_t>::val;
 	}

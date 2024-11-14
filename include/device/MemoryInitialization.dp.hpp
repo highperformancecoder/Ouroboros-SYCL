@@ -101,34 +101,34 @@ void d_setupMemoryPointers(OUROBOROS* ouroboros)
 // ##############################################################################################################################################
 //
 template <typename OUROBOROS>
-void d_initializeOuroborosQueues(OUROBOROS* ouroboros, const sycl::nd_item<1>& item)
+void d_initializeOuroborosQueues(const Desc& d,OUROBOROS* ouroboros)
 {
 	// Template-recursive to initialize queues
-  ouroboros->memory.chunk_locator.init(ouroboros->memory.maxChunks, item);
+  ouroboros->memory.chunk_locator.init(d,ouroboros->memory.maxChunks);
 	IndexQueue* d_base_chunk_reuse{nullptr};
-	ouroboros->initQueues(d_base_chunk_reuse,item);
+	ouroboros->initQueues(d,d_base_chunk_reuse);
 }
 
 // ##############################################################################################################################################
 //
 template <class OUROBOROS, class... OUROBOROSES>
 __dpct_inline__ void
-Ouroboros<OUROBOROS, OUROBOROSES...>::initQueues(IndexQueue *d_base_chunk_reuse, const sycl::nd_item<1>& item)
+Ouroboros<OUROBOROS, OUROBOROSES...>::initQueues(const Desc& d, IndexQueue *d_base_chunk_reuse)
 {
 	// --------------------------------------------------------
 	// Init queues
-  memory_manager.d_chunk_reuse_queue.init(item);
+  memory_manager.d_chunk_reuse_queue.init(d);
 	if(d_base_chunk_reuse == nullptr)
 		d_base_chunk_reuse = &(memory_manager.d_chunk_reuse_queue);
 	memory_manager.d_base_chunk_reuse_queue = d_base_chunk_reuse;
 	#pragma unroll
 	for (auto i = 0; i < ConcreteOuroboros::NumberQueues_; ++i)
 	{
-          memory_manager.d_storage_reuse_queue[i].init(&memory_manager,item);
+          memory_manager.d_storage_reuse_queue[i].init(d,&memory_manager);
 	}
 
 	// Init next queues
-	next_memory_manager.initQueues(d_base_chunk_reuse,item);
+	next_memory_manager.initQueues(d,d_base_chunk_reuse);
 }
 
 // ##############################################################################################################################################
@@ -241,8 +241,13 @@ void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, si
 //	int num_sm_per_device{0};
 //        num_sm_per_device = dpct::get_device(0).get_max_compute_units();
 //        grid_size *= num_sm_per_device;
-        syclQueue.parallel_for(sycl::nd_range<1>(grid_size*block_size, block_size), [this](sycl::nd_item<1> item) {
-          d_initializeOuroborosQueues<MyType>(reinterpret_cast<MyType*>(memory.d_memory),item);
+        syclQueue.submit([&](auto& h) {
+          sycl::stream out(1000000,1000,h);
+          h.parallel_for(sycl::nd_range<1>(grid_size*block_size, block_size),
+                         [=,this](sycl::nd_item<1> item) {
+                           Desc d{item,out};
+                           d_initializeOuroborosQueues<MyType>(d,reinterpret_cast<MyType*>(memory.d_memory));
+                         });
         });
 
         HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));

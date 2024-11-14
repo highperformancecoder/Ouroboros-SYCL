@@ -9,15 +9,14 @@ struct ChunkLocator
 	/*!	\brief						Initialize all indices to 0
 	 *	\return						Void
 	 *	\param[in]	num_chunks		Number of chunks */
-        __dpct_inline__ void init(unsigned int num_chunks,
-                                  const sycl::nd_item<1> &item_ct1)
+  __dpct_inline__ void init(const Desc& d, unsigned int num_chunks)
         {
                 for (int i =
-                         item_ct1.get_group(0) * item_ct1.get_local_range(0) +
-                         item_ct1.get_local_id(0);
+                         d.item.get_group(0) * d.item.get_local_range(0) +
+                         d.item.get_local_id(0);
                      i < Ouro::divup(num_chunks, num_bits);
                      i +=
-                     item_ct1.get_local_range(0) * item_ct1.get_group_range(0))
+                     d.item.get_local_range(0) * d.item.get_group_range(0))
                 {
 			d_chunk_flags[i] = 0;
 		}

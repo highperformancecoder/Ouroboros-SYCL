@@ -55,8 +55,7 @@ struct ChunkQueueVA
 	}
 
         template <typename MemoryManagerType>
-        __dpct_inline__ void init(MemoryManagerType *memory_manager,
-                                  const sycl::nd_item<3> &item_ct1);
+        __dpct_inline__ void init(const Desc&,MemoryManagerType *memory_manager);
 
         template <typename MemoryManagerType>
         __dpct_inline__ bool
@@ -65,25 +64,23 @@ struct ChunkQueueVA
                             index_t pages_per_chunk);
 
         template <typename MemoryManagerType>
-        __dpct_inline__ void *allocPage(MemoryManagerType *memory_manager,
-                                        const sycl::nd_item<1> &item_ct1);
+        __dpct_inline__ void *allocPage(const Desc&,MemoryManagerType *memory_manager);
 
         template <typename MemoryManagerType>
-        __dpct_inline__ void freePage(MemoryManagerType *memory_manager,
+        __dpct_inline__ void freePage(const Desc&,MemoryManagerType *memory_manager,
                                       MemoryIndex index);
 
         template <typename MemoryManagerType>
         __dpct_inline__ QueueChunkType *
-        accessQueueElement(MemoryManagerType *memory_manager, index_t chunk_id,
+        accessQueueElement(const Desc&,MemoryManagerType *memory_manager, index_t chunk_id,
                            index_t v_position);
         template <typename MemoryManagerType>
         __dpct_inline__ void
-        enqueue(MemoryManagerType *memory_manager, index_t index,
+        enqueue(const Desc&,MemoryManagerType *memory_manager, index_t index,
                 typename MemoryManagerType::ChunkType *chunk);
         template <typename MemoryManagerType>
         __dpct_inline__ bool
-        enqueueChunk(MemoryManagerType *memory_manager, index_t chunk_index,
+        enqueueChunk(const Desc&,MemoryManagerType *memory_manager, index_t chunk_index,
                      index_t pages_per_chunk,
-                     typename MemoryManagerType::ChunkType *chunk,
-                     const sycl::stream &stream_ct1);
+                     typename MemoryManagerType::ChunkType *chunk);
 };

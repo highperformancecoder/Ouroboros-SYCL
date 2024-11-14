@@ -20,10 +20,8 @@ struct ChunkQueue
 	index_t* queue_;
 	SemaphoreType semaphore{ SemaphoreType::null_value };
 	int count_{ 0 };
-  Ouro::Atomic<int> atomicCount{count_};
 	unsigned int front_{ 0 };
 	unsigned int back_{ 0 };
-  Ouro::Atomic<unsigned> atomicFront{front_}, atomicBack{back_};
 	int queue_index_{ 0 };
 	int page_size_{ 0 };
 
@@ -41,7 +39,7 @@ struct ChunkQueue
                                           ChunkType *chunk);
 
         template <typename MemoryManagerType>
-        __dpct_inline__ void init(MemoryManagerType *memory_manager, sycl::nd_item<1>);
+        __dpct_inline__ void init(const Desc&,MemoryManagerType *memory_manager);
 
         template <typename MemoryManagerType>
         __dpct_inline__ bool
@@ -50,10 +48,10 @@ struct ChunkQueue
                             index_t pages_per_chunk);
 
         template <typename MemoryManagerType>
-        __dpct_inline__ void *allocPage(MemoryManagerType *memory_manager,const sycl::nd_item<1>&);
+        __dpct_inline__ void *allocPage(const Desc&,MemoryManagerType *memory_manager);
 
         template <typename MemoryManagerType>
-        __dpct_inline__ void freePage(MemoryManagerType *memory_manager,
+        __dpct_inline__ void freePage(const Desc&,MemoryManagerType *memory_manager,
                                       MemoryIndex index);
 
         template <typename MemoryManagerType>

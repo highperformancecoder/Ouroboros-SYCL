@@ -12,22 +12,20 @@
 #define TEST_MULTI
 
 template <typename MemoryManagerType>
-void d_testAllocation(MemoryManagerType* mm, int** verification_ptr, int num_allocations, int allocation_size,
-                      const sycl::nd_item<1> &item_ct1)
+void d_testAllocation(const Desc& d, MemoryManagerType* mm, int** verification_ptr, int num_allocations, int allocation_size)
 {
-        int tid = item_ct1.get_local_id(0) +
-                  item_ct1.get_group(0) * item_ct1.get_local_range(0);
+        int tid = d.item.get_local_id(0) +
+                  d.item.get_group(0) * d.item.get_local_range(0);
         if(tid >= num_allocations)
 		return;
 
-	verification_ptr[tid] = reinterpret_cast<int*>(mm->malloc(allocation_size,item_ct1));
+	verification_ptr[tid] = reinterpret_cast<int*>(mm->malloc(d, allocation_size));
 }
 
-void d_testWriteToMemory(int** verification_ptr, int num_allocations, int allocation_size,
-                         const sycl::nd_item<3> &item_ct1)
+void d_testWriteToMemory(const Desc& d, int** verification_ptr, int num_allocations, int allocation_size)
 {
-        int tid = item_ct1.get_local_id(2) +
-                  item_ct1.get_group(2) * item_ct1.get_local_range(2);
+        int tid = d.item.get_local_id(0) +
+                  d.item.get_group(0) * d.item.get_local_range(0);
         if(tid >= num_allocations)
 		return;
 	
@@ -39,17 +37,15 @@ void d_testWriteToMemory(int** verification_ptr, int num_allocations, int alloca
 	}
 }
 
-void d_testReadFromMemory(int** verification_ptr, int num_allocations, int allocation_size,
-                          const sycl::nd_item<3> &item_ct1,
-                          const sycl::stream &stream_ct1)
+void d_testReadFromMemory(const Desc& d, int** verification_ptr, int num_allocations, int allocation_size)
 {
-        int tid = item_ct1.get_local_id(2) +
-                  item_ct1.get_group(2) * item_ct1.get_local_range(2);
+        int tid = d.item.get_local_id(0) +
+                  d.item.get_group(0) * d.item.get_local_range(0);
         if(tid >= num_allocations)
 		return;
 
-        if (item_ct1.get_local_id(2) == 0 && item_ct1.get_group(2) == 0)
-                stream_ct1 << "Test Read!\n";
+        if (d.item.get_local_id(0) == 0 && d.item.get_group(0) == 0)
+                d.out << "Test Read!\n";
 
         auto ptr = verification_ptr[tid];
 
@@ -60,22 +56,21 @@ void d_testReadFromMemory(int** verification_ptr, int num_allocations, int alloc
                         /*
                         DPCT1015:0: Output needs adjustment.
                         */
-                        stream_ct1 << "%d - %d | We got a wrong value here! %d vs %d\n";
+                  d.out << d.item.get_local_id(0)<<" - "<<d.item.get_group(0)<<" | We got a wrong value here! "<<ptr[i]<<" vs "<<tid<<sycl::endl;
                         return;
 		}
 	}
 }
 
 template <typename MemoryManagerType>
-void d_testFree(MemoryManagerType* mm, int** verification_ptr, int num_allocations,
-                const sycl::nd_item<1> &item_ct1)
+void d_testFree(const Desc& d, MemoryManagerType* mm, int** verification_ptr, int num_allocations)
 {
-        int tid = item_ct1.get_local_id(0) +
-                  item_ct1.get_group(0) * item_ct1.get_local_range(0);
+        int tid = d.item.get_local_id(0) +
+                  d.item.get_group(0) * d.item.get_local_range(0);
         if(tid >= num_allocations)
 		return;
 
-	mm->free(verification_ptr[tid]);
+	mm->free(d, verification_ptr[tid]);
 }
 
 int main(int argc, char* argv[])
@@ -150,8 +145,8 @@ int main(int argc, char* argv[])
 	#endif
 
 	size_t instantitation_size = 8192ULL * 1024ULL * 1024ULL;
-	MemoryManagerType memory_manager;
-	memory_manager.initialize(q_ct1, instantitation_size);
+	MemoryManagerType* memory_manager=sycl::malloc_shared<MemoryManagerType>(1, q_ct1);
+	memory_manager->initialize(q_ct1, instantitation_size);
 
 	int** d_memory{nullptr};
         HANDLE_ERROR(DPCT_CHECK_ERROR(
@@ -165,9 +160,13 @@ int main(int argc, char* argv[])
         for(auto i = 0; i < num_iterations; ++i)
 	{
 		start_clock(start, end);
-                q_ct1.parallel_for(sycl::nd_range<1>(gridSize*blockSize, blockSize), [=](const sycl::nd_item<1>& item) {
-                  d_testAllocation <MemoryManagerType>(memory_manager.getDeviceMemoryManager(), d_memory, num_allocations, allocation_size_byte, item);
+                q_ct1.submit([&](auto& h) {
+                  sycl::stream out(1000000,1000,h);
+                  h.parallel_for(sycl::nd_range<1>(gridSize*blockSize, blockSize), [=](const sycl::nd_item<1>& item) {
+                    Desc d{item,out};
+                    d_testAllocation <MemoryManagerType>(d, memory_manager->getDeviceMemoryManager(), d_memory, num_allocations, allocation_size_byte);
                   });
+                });
 		timing_allocation += end_clock(start, end);
 
                 HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
@@ -178,15 +177,17 @@ int main(int argc, char* argv[])
                 info::device::max_work_group_size. Adjust the work-group size if
                 needed.
                 */
-                q_ct1.parallel_for(
-                    sycl::nd_range<3>(sycl::range<3>(1, 1, gridSize) *
-                                          sycl::range<3>(1, 1, blockSize),
-                                      sycl::range<3>(1, 1, blockSize)),
-                    [=](sycl::nd_item<3> item_ct1) {
-                            d_testWriteToMemory(d_memory, num_allocations,
-                                                allocation_size_byte, item_ct1);
-                    });
-
+                q_ct1.submit([&](auto& h) {
+                  sycl::stream out(1000000,1000,h);
+                  h.parallel_for(
+                                 sycl::nd_range<1>(gridSize*blockSize, blockSize),
+                                 [=](sycl::nd_item<1> item) {
+                                   Desc d{item,out};
+                                   d_testWriteToMemory(d, d_memory, num_allocations,
+                                                       allocation_size_byte);
+                                 });
+                });
+                  
                 HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
 
                 /*
@@ -195,27 +196,27 @@ int main(int argc, char* argv[])
                 info::device::max_work_group_size. Adjust the work-group size if
                 needed.
                 */
-                q_ct1.submit([&](sycl::handler &cgh) {
-                        sycl::stream stream_ct1(64 * 1024, 80, cgh);
-
-                        cgh.parallel_for(
-                            sycl::nd_range<3>(
-                                sycl::range<3>(1, 1, gridSize) *
-                                    sycl::range<3>(1, 1, blockSize),
-                                sycl::range<3>(1, 1, blockSize)),
-                            [=](sycl::nd_item<3> item_ct1) {
-                                    d_testReadFromMemory(d_memory,
+                q_ct1.submit([&](auto& h) {
+                  sycl::stream out(1000000,1000,h);
+                  h.parallel_for(
+                                 sycl::nd_range<1>(gridSize*blockSize, blockSize),
+                                 [=](sycl::nd_item<1> item) {
+                                   Desc d{item,out};
+                                   d_testReadFromMemory(d,d_memory,
                                                          num_allocations,
-                                                         allocation_size_byte,
-                                                         item_ct1, stream_ct1);
-                            });
+                                                         allocation_size_byte);
+                                 });
                 });
 
                 HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
 
                 start_clock(start, end);
-                q_ct1.parallel_for(sycl::nd_range<1>(gridSize*blockSize, blockSize), [=](const sycl::nd_item<1> item) {
-                  d_testFree <MemoryManagerType>(memory_manager.getDeviceMemoryManager(), d_memory, num_allocations, item);
+                q_ct1.submit([&](auto& h) {
+                  sycl::stream out(1000000,1000,h);
+                  h.parallel_for(sycl::nd_range<1>(gridSize*blockSize, blockSize), [=](const sycl::nd_item<1> item) {
+                    Desc d{item,out};
+                    d_testFree <MemoryManagerType>(d,memory_manager->getDeviceMemoryManager(), d_memory, num_allocations);
+                  });
                 });
 		timing_free += end_clock(start, end);
 

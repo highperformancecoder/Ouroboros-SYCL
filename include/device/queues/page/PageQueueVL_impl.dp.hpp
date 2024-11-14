@@ -13,19 +13,18 @@
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-PageQueueVL<CHUNK_TYPE>::init(MemoryManagerType *memory_manager,
-                              const sycl::nd_item<3> &item_ct1)
+PageQueueVL<CHUNK_TYPE>::init(const Desc& d,MemoryManagerType *memory_manager)
 {
-        if ((item_ct1.get_group(2) * item_ct1.get_local_range(2) +
-             item_ct1.get_local_id(2)) == 0)
+        if ((d.item.get_group(2) * d.item.get_local_range(2) +
+             d.item.get_local_id(2)) == 0)
         {
 		// Allocate 1 chunk per queue in the beginning
 		index_t chunk_index{0};
-		memory_manager->allocateChunk<true>(chunk_index);
+		memory_manager->template allocateChunk<true>(chunk_index);
 		auto queue_chunk = QueueChunkType::initializeChunk(memory_manager->d_data, chunk_index, 0);
 
 		if(!FINAL_RELEASE && printDebug)
-			printf("Allocate a new chunk for the queue %u with index: %u : ptr: %p\n",queue_index_, chunk_index, queue_chunk);
+                  d.out<<"Allocate a new chunk for the queue "<<queue_index_<<" with index: "<<chunk_index<<" : ptr: "<<queue_chunk<<sycl::endl;
 		
 		// All pointers point to the same chunk in the beginning
 		front_ptr_ = queue_chunk;
@@ -39,14 +38,14 @@ PageQueueVL<CHUNK_TYPE>::init(MemoryManagerType *memory_manager,
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ bool
-PageQueueVL<CHUNK_TYPE>::enqueueChunk(MemoryManagerType *memory_manager,
+PageQueueVL<CHUNK_TYPE>::enqueueChunk(const Desc& d,MemoryManagerType *memory_manager,
                                       index_t chunk_index,
                                       index_t pages_per_chunk)
 {
   //unsigned int virtual_pos = atomicAdd(&back_, pages_per_chunk);
   unsigned int virtual_pos = Ouro::Atomic<unsigned>(back_)+=pages_per_chunk;
 
-	back_ptr_->enqueueChunk(memory_manager, virtual_pos, chunk_index, pages_per_chunk, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
+  back_ptr_->enqueueChunk(d, memory_manager, virtual_pos, chunk_index, pages_per_chunk, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
 
 	// Please DO NOT reorder here
         /*
@@ -86,7 +85,7 @@ __dpct_inline__ bool PageQueueVL<CHUNK_TYPE>::enqueueInitialChunk(
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ void *
-PageQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager, const sycl::nd_item<1>&)
+PageQueueVL<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
 {
 	using ChunkType = typename MemoryManagerType::ChunkType;
 
@@ -94,18 +93,18 @@ PageQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager, const sycl
 	uint32_t chunk_index;
 	auto pages_per_chunk = MemoryManagerType::QI::getPagesPerChunkFromQueueIndex(queue_index_);
 
-	semaphore.wait(1, pages_per_chunk, [&]()
+	semaphore.wait(d,1, pages_per_chunk, [&]()
 	{
-		if (!memory_manager->allocateChunk<false>(chunk_index))
+		if (!memory_manager->template allocateChunk<false>(chunk_index))
 		{
 			if(!FINAL_RELEASE)
-				printf("TODO: Could not allocate chunk!!!\n");
+                          d.out<<"TODO: Could not allocate chunk!!!\n";
 		}
 
 	 	ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
 		//__threadfence();
                 sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::device);
-	 	enqueueChunk(memory_manager, chunk_index, pages_per_chunk);
+	 	enqueueChunk(d,memory_manager, chunk_index, pages_per_chunk);
 	});
 
         /*
@@ -117,7 +116,7 @@ PageQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager, const sycl
 
         // unsigned int virtual_pos = atomicAdd(&front_, 1);
 	unsigned int virtual_pos = Ouro::atomicAggInc(&front_);
-	front_ptr_->template dequeue<QueueChunkType::DEQUEUE_MODE::DEQUEUE>(memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
+	front_ptr_->template dequeue<QueueChunkType::DEQUEUE_MODE::DEQUEUE>(d,memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
 
 	chunk_index = index.getChunkIndex();
 	return ChunkType::getPage(memory_manager->d_data, chunk_index, index.getPageIndex(), page_size_);
@@ -128,10 +127,10 @@ PageQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager, const sycl
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-PageQueueVL<CHUNK_TYPE>::freePage(MemoryManagerType *memory_manager,
+PageQueueVL<CHUNK_TYPE>::freePage(const Desc& d,MemoryManagerType *memory_manager,
                                   MemoryIndex index)
 {
-	enqueue(memory_manager, index.index);
+  enqueue(d,memory_manager, index.index);
 
         /*
         DPCT1078:2: Consider replacing memory_order::acq_rel with
@@ -149,11 +148,11 @@ PageQueueVL<CHUNK_TYPE>::freePage(MemoryManagerType *memory_manager,
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-PageQueueVL<CHUNK_TYPE>::enqueue(MemoryManagerType *memory_manager,
+PageQueueVL<CHUNK_TYPE>::enqueue(const Desc& d,MemoryManagerType *memory_manager,
                                  index_t index)
 {
 	// Increase back and compute the position on a chunk
 	// const unsigned int virtual_pos = atomicAdd(&back_, 1);
 	unsigned int virtual_pos = Ouro::atomicAggInc(&back_);
-	back_ptr_->enqueue(memory_manager, virtual_pos, index, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
+	back_ptr_->enqueue(d, memory_manager, virtual_pos, index, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
 }

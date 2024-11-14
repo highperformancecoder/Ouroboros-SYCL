@@ -11,10 +11,10 @@
 template <typename ChunkType>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-PageQueue<ChunkType>::init(MemoryManagerType *memory_manager, sycl::nd_item<1> item)
+PageQueue<ChunkType>::init(const Desc& d,MemoryManagerType *memory_manager)
 {
   //for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < size_; i += blockDim.x * gridDim.x)
-  for (int i = item.get_global_id(0); i < size_; i += item.get_global_range(0))
+  for (int i = d.item.get_global_id(0); i < size_; i += d.item.get_global_range(0))
   {
 		queue_[i] = DeletionMarker<index_t>::val;
 	}
@@ -61,7 +61,7 @@ __dpct_inline__ bool PageQueue<ChunkType>::enqueueInitialChunk(
 // ##############################################################################################################################################
 //
 template <typename ChunkType>
-__dpct_inline__ bool PageQueue<ChunkType>::enqueueChunk(index_t chunk_index,
+__dpct_inline__ bool PageQueue<ChunkType>::enqueueChunk(const Desc& d,index_t chunk_index,
                                                         index_t pages_per_chunk)
 {
 	if (semaphore.signalExpected(pages_per_chunk) < size_)
@@ -88,7 +88,7 @@ __dpct_inline__ bool PageQueue<ChunkType>::enqueueChunk(index_t chunk_index,
 // ##############################################################################################################################################
 //
 template <typename ChunkType>
-__dpct_inline__ void PageQueue<ChunkType>::dequeue(MemoryIndex &index)
+__dpct_inline__ void PageQueue<ChunkType>::dequeue(const Desc&, MemoryIndex &index)
 {
 	// Dequeue from queue
 	// #if (__CUDA_ARCH__ < 700)
@@ -112,29 +112,30 @@ __dpct_inline__ void PageQueue<ChunkType>::dequeue(MemoryIndex &index)
 
 // ##############################################################################################################################################
 //
+
 template <typename ChunkType>
 template <typename MemoryManagerType>
 __dpct_inline__ void *
-PageQueue<ChunkType>::allocPage(MemoryManagerType *memory_manager,const sycl::nd_item<1>&)
+PageQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
 {
 	MemoryIndex index;
 	uint32_t chunk_index;
 	auto pages_per_chunk = MemoryManagerType::QI::getPagesPerChunkFromQueueIndex(queue_index_);
 
-	semaphore.wait(1, pages_per_chunk, [&]()
+	semaphore.wait(d, 1, pages_per_chunk, [&]()
 	{
-		if (!memory_manager->allocateChunk<false>(chunk_index))
+          if (!memory_manager->template allocateChunk<false>(chunk_index))
 		{
-			if(!FINAL_RELEASE)
-				printf("TODO: Could not allocate chunk!!!\n");
+                  if(!FINAL_RELEASE)
+                    d.out<<"TODO: Could not allocate chunk!!!\n";
 		}
 
 	 	ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
-	 	enqueueChunk(chunk_index, pages_per_chunk);
+	 	enqueueChunk(d,chunk_index, pages_per_chunk);
 	});
 	
 	// Get index from queue
-	dequeue(index);
+	dequeue(d,index);
 
 	// Return page to caller
 	return ChunkType::getPage(memory_manager->d_data, index.getChunkIndex(), index.getPageIndex(), page_size_);
@@ -145,7 +146,7 @@ PageQueue<ChunkType>::allocPage(MemoryManagerType *memory_manager,const sycl::nd
 template <typename ChunkType>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-PageQueue<ChunkType>::freePage(MemoryManagerType *memory_manager,
+PageQueue<ChunkType>::freePage(const Desc&,MemoryManagerType *memory_manager,
                                MemoryIndex index)
 {
 	// Enqueue this index into the queue

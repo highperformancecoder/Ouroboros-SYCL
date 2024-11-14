@@ -8,6 +8,12 @@ namespace Ouro
 {
   template <class T> using Atomic=sycl::atomic_ref<T,sycl::memory_order::relaxed,sycl::memory_scope::device>;
 
+  struct Desc
+  {
+    sycl::nd_item<1> item;
+    sycl::stream out;
+  };
+  
   // replacement for CUDA atomicCAS
   template <class T> inline T atomicCAS(T& address, T compare, T val)
   {
@@ -22,7 +28,7 @@ namespace Ouro
     /*
       DPCT1053:0: Migration of device assembly code is not supported.
     */
-    asm volatile("ld.global.cg.u32 %0, [%1];" : "=r"(dest) : "l"(src));
+    // TODO    asm volatile("ld.global.cg.u32 %0, [%1];" : "=r"(dest) : "l"(src));
 #endif
     return dest;
   }
@@ -35,7 +41,7 @@ namespace Ouro
       DPCT1053:1: Migration of device assembly code is not
       supported.
     */
-    asm volatile("ld.global.cg.s32 %0, [%1];" : "=r"(dest) : "l"(src));
+    // TODO asm volatile("ld.global.cg.s32 %0, [%1];" : "=r"(dest) : "l"(src));
 #endif
     return dest;
   }
@@ -47,7 +53,7 @@ namespace Ouro
     /*
       DPCT1053:2: Migration of device assembly code is not supported.
     */
-    asm volatile("ld.global.cg.u64 %0, [%1];" : "=l"(dest) : "l"(src));
+    // TODO    asm volatile("ld.global.cg.u64 %0, [%1];" : "=l"(dest) : "l"(src));
 #endif
     return dest;
   }
@@ -166,3 +172,28 @@ namespace Ouro
 
 }
 
+template <class T, class U> T atomicAdd(T* x, U v)
+{return Ouro::Atomic<T>(*x).fetch_add(v);}
+
+template <class T, class U> T atomicSub(T* x, U v)
+{return Ouro::Atomic<T>(*x).fetch_sub(v);}
+
+template <class T, class U> T atomicAnd(T* x, U v)
+{return Ouro::Atomic<T>(*x).fetch_and(v);}
+
+template <class T, class U> T atomicOr(T* x, U v)
+{return Ouro::Atomic<T>(*x).fetch_or(v);}
+
+template <class T, class U> T atomicMax(T* x, U v)
+{return Ouro::Atomic<T>(*x).fetch_max(v);}
+
+template <class T, class U> T atomicExch(T* x, U v)
+{return Ouro::Atomic<T>(*x).exchange(v);}
+
+template <class T, class U, class V> T atomicCAS(T* x, U expected, V desired)
+{
+  Ouro::Atomic<T>(*x).compare_exchange_strong(expected,desired);
+  return expected; // value updated to previous value of x by above
+}
+
+using Ouro::Desc;

@@ -8,14 +8,13 @@
 //
 template <size_t SIZE, size_t SMALLEST_PAGE>
 __dpct_inline__ typename ChunkAccess<SIZE, SMALLEST_PAGE>::FreeMode
-ChunkAccess<SIZE, SMALLEST_PAGE>::freePage(index_t page_index)
+ChunkAccess<SIZE, SMALLEST_PAGE>::freePage(const Desc&,index_t page_index)
 {
 	const int mask_index = page_index / (Ouro::sizeofInBits<MaskDataType>());
 	const int local_page_index = page_index % (Ouro::sizeofInBits<MaskDataType>());
 	const auto bit_pattern = 1U << local_page_index;
 	// Set bit to 1
-	//atomicOr(&availability_mask[mask_index], bit_pattern);
-        Atomic(availability_mask[mask_index])|=bit_pattern;
+	atomicOr(&availability_mask[mask_index], bit_pattern);
 	
 	// Please do NOT reorder here
 	//__threadfence_block();
@@ -45,7 +44,7 @@ __dpct_inline__ bool ChunkAccess<SIZE, SMALLEST_PAGE>::tryFlashChunk()
 //
 template <size_t SIZE, size_t SMALLEST_PAGE>
 __dpct_inline__ typename ChunkAccess<SIZE, SMALLEST_PAGE>::Mode
-ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(index_t &page_index, sycl::nd_item<1> item)
+ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(const Desc& d,index_t &page_index)
 {
 	int current_count{ 0 };
 	auto mode = Mode::SUCCESSFULL;
@@ -79,12 +78,12 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(index_t &page_index, sycl::nd_item<1
 
 	// Offset in the range of 0-63
 	//const int offset = (threadIdx.x + blockIdx.x) % Ouro::sizeofInBits<MaskDataType>();
-        const int offset = (item.get_local_id(0) + item.get_group(0)) % Ouro::sizeofInBits<MaskDataType>();
+        const int offset = (d.item.get_local_id(0) + d.item.get_group(0)) % Ouro::sizeofInBits<MaskDataType>();
 
 	// TODO: Why is this not faster instead of always using the full mask?
 	// int mask = Ouro::divup(size, sizeof(MaskDataType) * BYTE_SIZE);
 	//int bitmask_index = threadIdx.x;
-        int bitmask_index = item.get_local_id(0);
+        int bitmask_index = d.item.get_local_id(0);
 
 	// There is a reason why this is a while true loop and not just a loop over all MAXIMUM_MITMASK_SIZE entries
 	// Imagine we have 2 threads, currently one page in mask 3
@@ -110,7 +109,7 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(index_t &page_index, sycl::nd_item<1
 		auto without_lower_part = current_mask >> offset;
 		auto final_mask = without_lower_part | (current_mask << (Ouro::sizeofInBits<MaskDataType>() - offset));
 
-		while((least_significant_bit = __ffsll(final_mask)))
+		while((least_significant_bit = /*__ffsll*/sycl::ctz(final_mask)))
 		{
 			--least_significant_bit; // Get actual bit position (as bit 0 return 1)
 			least_significant_bit = ((least_significant_bit + offset) % Ouro::sizeofInBits<MaskDataType>()); // Correct for shift
@@ -122,7 +121,8 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(index_t &page_index, sycl::nd_item<1
                         sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::work_group);
 
 			auto bit_pattern = createBitPattern(least_significant_bit);
-			current_mask = atomicAnd(&availability_mask[bitmask_index % MaximumBitMaskSize_], bit_pattern);
+			//current_mask = atomicAnd(&availability_mask[bitmask_index % MaximumBitMaskSize_], bit_pattern);
+                        current_mask = atomicAnd(&availability_mask[bitmask_index % MaximumBitMaskSize_], bit_pattern);
 
 			// Please do NOT reorder here
 			//__threadfence_block();
@@ -142,8 +142,8 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(index_t &page_index, sycl::nd_item<1
 	// Error Checking
 	if(!FINAL_RELEASE)
 	{
+          // TODO
           //printf("We should have gotten a page, but there was nothing for threadId %d and blockId %d - current count : %d - bitmask_index: %d\n", threadIdx.x, blockIdx.x, current_count, bitmask_index);
-          printf("We should have gotten a page, but there was nothing for threadId %d and blockId %d - current count : %d - bitmask_index: %d\n", item.get_local_id(0), item.get_group(0), current_count, bitmask_index);
           //	__trap(); // TODO - need to return error and exception back to host
 	}
 	return Mode::ERROR;

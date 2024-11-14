@@ -22,9 +22,8 @@ __dpct_inline__ bool BulkSemaphore::tryReduce(int N)
 // ##############################################################################################################################################
 //
 template <typename T>
-__dpct_inline__ void BulkSemaphore::wait(int N, uint32_t number_pages_on_chunk,
-                                         T allocationFunction,
-                                         sycl::nd_item<1> item)
+__dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pages_on_chunk,
+                                         T allocationFunction)
 #if (DPCT_COMPATIBILITY_TEMP < 700)
 {
 	enum class Mode
@@ -88,7 +87,7 @@ __dpct_inline__ void BulkSemaphore::wait(int N, uint32_t number_pages_on_chunk,
 
 		int predicate = (mode == Mode::AllocateChunk) ? 1 : 0;
                 //if (__ballot_sync(__activemask(), predicate))
-                auto sg=item.get_sub_group();
+                auto sg=d.item.get_sub_group();
                 // TODO - why not any_of?
                 if (sycl::reduce_over_group(sg,predicate<<sg.get_local_linear_id(),sycl::bit_or()))
 		{

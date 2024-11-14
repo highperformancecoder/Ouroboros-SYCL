@@ -9,7 +9,7 @@
 template <typename ChunkBase>
 template <typename FUNCTION>
 __dpct_inline__ void QueueChunk<ChunkBase>::guaranteeWarpSyncPerChunk
-(index_t position, const char *message, FUNCTION f, sycl::nd_item<1> item)
+(const Desc& d,index_t position, const char *message, FUNCTION f)
 {
 	// This functions tries to guarantee that threads that concurrently do a certain action will be synchronized in their traversal
 	// Otherwise the issue is that, although the new model seems to state otherwise, certain threads can be stalled by others
@@ -19,7 +19,7 @@ __dpct_inline__ void QueueChunk<ChunkBase>::guaranteeWarpSyncPerChunk
 
 	// TODO: This seems to work, but it is not a guarantee that this actually works
 	//auto active_mask = __activemask();
-        auto sg=item.get_sub_group();
+        auto sg=d.item.get_sub_group();
 	while(true)
 	{
 		int predicate = (chunk_ptr->checkVirtualStart(position)) ? work_NOT_done : FALSE;
@@ -97,7 +97,7 @@ QueueChunk<ChunkBase>::enqueueInitial(const unsigned int position,
 //
 template <typename ChunkBase>
 __dpct_inline__ unsigned int
-QueueChunk<ChunkBase>::enqueue(const unsigned int position,
+QueueChunk<ChunkBase>::enqueue(const Desc& d,const unsigned int position,
                                const QueueDataType element)
 {
 	unsigned int counter{0};
@@ -130,8 +130,7 @@ QueueChunk<ChunkBase>::enqueueLinked(const unsigned int position,
   Ouro::Atomic<unsigned>(queue_[position]).exchange(element);
 
 	// Increment both counters
-	//return atomicAdd(&count_, countAddValueEnqueue<1>());
-  return atomicCount+=countAddValueEnqueue<1>();
+	return atomicAdd(&count_, countAddValueEnqueue<1>());
 }
 
 // ##############################################################################################################################################
@@ -156,13 +155,13 @@ QueueChunk<ChunkBase>::enqueueLinkedv4(const unsigned int position,
 // Enqueue a single page/chunk into the queue
 template <typename ChunkBase>
 template <typename MemoryManagerType>
-__dpct_inline__ void QueueChunk<ChunkBase>::enqueue(
+__dpct_inline__ void QueueChunk<ChunkBase>::enqueue(const Desc& d,
     MemoryManagerType *memory_manager, const unsigned int position,
     const QueueDataType element, QueueChunk<ChunkBase> **queue_next_ptr,
     QueueChunk<ChunkBase> **queue_front_ptr,
     QueueChunk<ChunkBase> **queue_old_ptr, unsigned int *old_count)
 {
-	guaranteeWarpSyncPerChunk(position, "Enqueue", [&](QueueChunk<ChunkBase>* chunk_ptr)
+  guaranteeWarpSyncPerChunk(d,position, "Enqueue", [&](QueueChunk<ChunkBase>* chunk_ptr)
 	{
 		// We found the right chunk
 		const auto local_position = (Ouro::modPower2<num_spots_>(position));
@@ -170,7 +169,7 @@ __dpct_inline__ void QueueChunk<ChunkBase>::enqueue(
 		{
 			// We pre-emptively allocate the next chunk already
 			unsigned int chunk_index{ 0 };
-			memory_manager->allocateChunk<true>(chunk_index);
+			memory_manager->template allocateChunk<true>(chunk_index);
 
 //			if(!FINAL_RELEASE && printDebug)
 //				printf("E - %d : %d Allocate a new chunk for queue with index: %u and virtual pos: %u\n", threadIdx.x, blockIdx.x, chunk_index, position);
@@ -217,7 +216,7 @@ __dpct_inline__ void QueueChunk<ChunkBase>::enqueue(
 template <typename ChunkBase>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-QueueChunk<ChunkBase>::enqueueChunk(MemoryManagerType *memory_manager,
+QueueChunk<ChunkBase>::enqueueChunk(const Desc& d, MemoryManagerType *memory_manager,
                                     unsigned int position, index_t chunk_index,
                                     index_t pages_per_chunk,
                                     QueueChunk<ChunkBase> **queue_next_ptr,
@@ -225,7 +224,7 @@ QueueChunk<ChunkBase>::enqueueChunk(MemoryManagerType *memory_manager,
                                     QueueChunk<ChunkBase> **queue_old_ptr,
                                     unsigned int *old_count, int start_index)
 {
-	guaranteeWarpSyncPerChunk(position, "EnqueueChunk", [&](QueueChunk<ChunkBase>* chunk_ptr)
+  guaranteeWarpSyncPerChunk(d,position, "EnqueueChunk", [&](QueueChunk<ChunkBase>* chunk_ptr)
 	{
 		// First check if we have to allocate an additional queue chunk at this point?
 		QueueChunk<ChunkBase>* potential_next{nullptr};
@@ -235,10 +234,10 @@ QueueChunk<ChunkBase>::enqueueChunk(MemoryManagerType *memory_manager,
 		{
 			// In this case we are either directly the first on a chunk or we will wrap onto the new chunk and then be first
 			// In either case, pre-allocate a new chunk here
-			memory_manager->allocateChunk<true>(queue_chunk_index);
+			memory_manager->template allocateChunk<true>(queue_chunk_index);
 
-//			if(!FINAL_RELEASE && printDebug)
-//				printf("EC - %d : %d Allocate a new chunk for queue with index: %u and virtual pos: %u\n", threadIdx.x, blockIdx.x, queue_chunk_index, (local_position == 0) ? (position + num_spots_) : (position + num_spots_ + (num_spots_ - local_position)) );
+			if(!FINAL_RELEASE && printDebug)
+                          d.out<<"EC - "<<d.item.get_local_id(0)<<" : "<<d.item.get_group(0)<<" Allocate a new chunk for queue with index: "<<queue_chunk_index<<" and virtual pos: "<<((local_position == 0) ? (position + num_spots_) : (position + num_spots_ + (num_spots_ - local_position)))<<sycl::endl;
 
 			index_t next_virtual_start{ (local_position == 0) ? (position + num_spots_) : (position + num_spots_ + (num_spots_ - local_position)) };
 			potential_next = initializeChunk(memory_manager->d_data, queue_chunk_index, next_virtual_start);
@@ -363,7 +362,7 @@ QueueChunk<ChunkBase>::enqueueChunk(MemoryManagerType *memory_manager,
 //
 template <typename ChunkBase>
 template <typename MemoryManagerType>
-__dpct_inline__ bool QueueChunk<ChunkBase>::dequeue(
+__dpct_inline__ bool QueueChunk<ChunkBase>::dequeue(const Desc&,
     const unsigned int position, QueueDataType &element,
     MemoryManagerType *memory_manager, QueueChunk<ChunkBase> **queue_front_ptr)
 {
@@ -386,7 +385,7 @@ __dpct_inline__ bool QueueChunk<ChunkBase>::dequeue(
 	// We have taken our element out - Return true if this chunk is empty and can be removed from the chunk list
 	// We subtract from counterB, so at this point, if counterB is 0 and counterA is full, then this chunk is empty
 	// Since atomicAdd returns the old value, check if the result is equal to counterA = num_spots and counterB = 1
-	return checkChunkEmptyDequeue(atomicCount -= 1 << shift_value);
+	return checkChunkEmptyDequeue(atomicSub(&count_, 1 << shift_value));
 }
 
 // ##############################################################################################################################################
@@ -402,7 +401,7 @@ QueueChunk<ChunkBase>::deleteElement(const unsigned int position)
 	// We have taken our element out - Return true if this chunk is empty and can be removed from the chunk list
 	// We subtract from counterB, so at this point, if counterB is 0 and counterA is full, then this chunk is empty
 	// Since atomicAdd returns the old value, check if the result is equal to counterA = num_spots and counterB = 1
-	return checkChunkEmptyDequeue(atomicCount -= 1U << shift_value);
+	return checkChunkEmptyDequeue(atomicSub(&count_, 1U << shift_value));
 }
 
 // ##############################################################################################################################################
@@ -410,15 +409,15 @@ QueueChunk<ChunkBase>::deleteElement(const unsigned int position)
 template <typename ChunkBase>
 template <typename QueueChunk<ChunkBase>::DEQUEUE_MODE Mode,
           typename MemoryManagerType>
-__dpct_inline__ void QueueChunk<ChunkBase>::dequeue(
+__dpct_inline__ void QueueChunk<ChunkBase>::dequeue(const Desc& d,
     MemoryManagerType *memory_manager, const unsigned int position,
     QueueDataType &element, QueueChunk<ChunkBase> **queue_front_ptr,
     QueueChunk<ChunkBase> **queue_old_ptr, unsigned int *old_count)
 {
-	guaranteeWarpSyncPerChunk(position, "Dequeue", [&](QueueChunk<ChunkBase>* chunk_ptr)
+  guaranteeWarpSyncPerChunk(d, position, "Dequeue", [&](QueueChunk<ChunkBase>* chunk_ptr)
 	{
 		const auto local_position = (Ouro::modPower2<num_spots_>(position));
-		if(Mode == DEQUEUE_MODE::DEQUEUE ? chunk_ptr->dequeue(local_position, element, memory_manager, queue_front_ptr) : chunk_ptr->deleteElement(local_position))
+		if(Mode == DEQUEUE_MODE::DEQUEUE ? chunk_ptr->dequeue(d,local_position, element, memory_manager, queue_front_ptr) : chunk_ptr->deleteElement(local_position))
 		{
 			// We can remove this chunk
 			auto how_many_removed = chunk_ptr->setFrontPointer(queue_front_ptr);

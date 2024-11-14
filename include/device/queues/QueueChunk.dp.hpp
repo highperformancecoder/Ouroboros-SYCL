@@ -43,7 +43,6 @@ struct QueueChunk : public CommonChunk
 	QueueDataType* queue_{nullptr}; // Queue data
 	unsigned long long next_{DeletionMarker<unsigned long long>::val}; // Pointer to the next chunk (only used in linked-list mode)
 	unsigned int count_{0U}; // Two 16 bit counters in one (counterB | counterA)
-  Ouro::Atomic<unsigned> atomicCount{count_};
 	unsigned int identifier{ QUEUECHUNK_IDENTIFIER }; // Use to differentiate regular chunks and queue chunks (only needed for debug prints)
 	unsigned int virtual_start_; // The virtual start index (e.g. 1024, which means that indices 1024 - 2047 are on this chunk if 1024 indices fit on chunk)
 	index_t chunk_index_{0};
@@ -70,10 +69,7 @@ struct QueueChunk : public CommonChunk
 		for(auto i = 0U; i < num_spots_; ++i)
 		{
 			// queue_[i] = DeletionMarker<QueueDataType>::val;
-                  sycl::atomic_ref<unsigned,sycl::memory_order::relaxed,sycl::memory_scope::work_item>
-                    atomicRef(queue_[i]);
-                  atomicRef = DeletionMarker<QueueDataType>::val;
-                  //	atomicExch(&queue_[i], DeletionMarker<QueueDataType>::val);
+                  atomicExch(&queue_[i], DeletionMarker<QueueDataType>::val);
 		}
 	}
 
@@ -84,7 +80,7 @@ struct QueueChunk : public CommonChunk
 
         // ##############################################################################################################################################
 	//
-        __dpct_inline__ unsigned int enqueue(const unsigned int position,
+  __dpct_inline__ unsigned int enqueue(const Desc&,const unsigned int position,
                                              const QueueDataType element);
 
         // ##############################################################################################################################################
@@ -102,7 +98,7 @@ struct QueueChunk : public CommonChunk
 	//
         template <typename MemoryManagerType>
         __dpct_inline__ void
-        enqueue(MemoryManagerType *memory_manager, const unsigned int position,
+        enqueue(const Desc&,MemoryManagerType *memory_manager, const unsigned int position,
                 const QueueDataType element, QueueChunk **queue_next_ptr,
                 QueueChunk **queue_front_ptr, QueueChunk **queue_old_ptr,
                 unsigned int *old_count);
@@ -111,7 +107,7 @@ struct QueueChunk : public CommonChunk
 	//
         template <typename MemoryManagerType>
         __dpct_inline__ void
-        enqueueChunk(MemoryManagerType *memory_manager,
+        enqueueChunk(const Desc&, MemoryManagerType *memory_manager,
                      unsigned int start_position, const index_t chunk_index,
                      index_t pages_per_chunk, QueueChunk **queue_next_ptr,
                      QueueChunk **queue_front_ptr, QueueChunk **queue_old_ptr,
@@ -120,7 +116,7 @@ struct QueueChunk : public CommonChunk
         // ##############################################################################################################################################
 	//
         template <typename MemoryManagerType>
-        __dpct_inline__ bool dequeue(const unsigned int position,
+        __dpct_inline__ bool dequeue(const Desc&, const unsigned int position,
                                      QueueDataType &element,
                                      MemoryManagerType *memory_manager,
                                      QueueChunk **queue_front_ptr);
@@ -133,7 +129,7 @@ struct QueueChunk : public CommonChunk
 	//
         template <DEQUEUE_MODE Mode, typename MemoryManagerType>
         __dpct_inline__ void
-        dequeue(MemoryManagerType *memory_manager, const unsigned int position,
+        dequeue(const Desc&, MemoryManagerType *memory_manager, const unsigned int position,
                 QueueDataType &element, QueueChunk **queue_front_ptr,
                 QueueChunk **queue_old_ptr, unsigned int *old_count);
 
@@ -199,9 +195,9 @@ struct QueueChunk : public CommonChunk
         // ##############################################################################################################################################
 	//
         template <typename FUNCTION>
-        __dpct_inline__ void guaranteeWarpSyncPerChunk(index_t position,
+        __dpct_inline__ void guaranteeWarpSyncPerChunk(const Desc&,index_t position,
                                                        const char *message,
-                                                       FUNCTION f, sycl::nd_item<1> item);
+                                                       FUNCTION f);
 
         // ##############################################################################################################################################
 	//

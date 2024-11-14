@@ -3,30 +3,29 @@
 #include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "ChunkQueueVL.dp.hpp"
-#include "device/ChunkAccess_impl.cuh"
-#include "device/BulkSemaphore_impl.cuh"
-#include "device/Chunk.cuh"
-#include "device/MemoryIndex.cuh"
-#include "device/queues/QueueChunk_impl.cuh"
+#include "device/ChunkAccess_impl.dp.hpp"
+#include "device/BulkSemaphore_impl.dp.hpp"
+#include "device/Chunk.dp.hpp"
+#include "device/MemoryIndex.dp.hpp"
+#include "device/queues/QueueChunk_impl.dp.hpp"
 
 // ##############################################################################################################################################
 //
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-ChunkQueueVL<CHUNK_TYPE>::init(MemoryManagerType *memory_manager,
-                               const sycl::nd_item<3> &item_ct1)
+ChunkQueueVL<CHUNK_TYPE>::init(const Desc& d, MemoryManagerType *memory_manager)
 {
-        if ((item_ct1.get_group(2) * item_ct1.get_local_range(2) +
-             item_ct1.get_local_id(2)) == 0)
+        if ((d.item.get_group(0) * d.item.get_local_range(0) +
+             d.item.get_local_id(0)) == 0)
         {
 		// Allocate 1 chunk per queue in the beginning
 		index_t chunk_index{0};
-		memory_manager->allocateChunk<true>(chunk_index);
+		memory_manager->template allocateChunk<true>(chunk_index);
 		auto queue_chunk = QueueChunkType::initializeChunk(memory_manager->d_data, chunk_index, 0);
 
 		if(!FINAL_RELEASE && printDebug)
-			printf("Allocate a new chunk for the queue %u with index: %u : ptr: %p\n",queue_index_, chunk_index, queue_chunk);
+                  d.out<<"Allocate a new chunk for the queue "<<queue_index_<<" with index: "<<chunk_index<<" : ptr: "<<queue_chunk<<sycl::endl;
 		
 		// All pointers point to the same chunk in the beginning
 		front_ptr_ = queue_chunk;
@@ -40,11 +39,11 @@ ChunkQueueVL<CHUNK_TYPE>::init(MemoryManagerType *memory_manager,
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ bool
-ChunkQueueVL<CHUNK_TYPE>::enqueueChunk(MemoryManagerType *memory_manager,
+ChunkQueueVL<CHUNK_TYPE>::enqueueChunk(const Desc& d,MemoryManagerType *memory_manager,
                                        index_t chunk_index,
                                        index_t pages_per_chunk)
 {
-	enqueue(memory_manager, chunk_index);
+  enqueue(d, memory_manager, chunk_index);
 
 	// Please do NOT reorder here
         /*
@@ -76,8 +75,7 @@ __dpct_inline__ bool ChunkQueueVL<CHUNK_TYPE>::enqueueInitialChunk(
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ void *
-ChunkQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager,
-                                    const sycl::nd_item<3> &item_ct1)
+ChunkQueueVL<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
 {
 	using ChunkType = typename MemoryManagerType::ChunkType;
 
@@ -86,26 +84,21 @@ ChunkQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager,
 	auto pages_per_chunk = MemoryManagerType::QI::getPagesPerChunkFromQueueIndex(queue_index_);
 	ChunkType* chunk{ nullptr };
 
-	semaphore.wait(1, pages_per_chunk, [&]()
+	semaphore.wait(d,1, pages_per_chunk, [&]()
 	{
-		if (!memory_manager->allocateChunk<false>(chunk_index))
+		if (!memory_manager->template allocateChunk<false>(chunk_index))
 		{
 			if(!FINAL_RELEASE)
-				printf("TODO: Could not allocate chunk!!!\n");
+                          d.out<<"TODO: Could not allocate chunk!!!\n";
 		}
 
 		ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk, pages_per_chunk);
-		__threadfence();
-		enqueueChunk(memory_manager, chunk_index, pages_per_chunk);
-		__threadfence();
+                sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::device);
+		enqueueChunk(d,memory_manager, chunk_index, pages_per_chunk);
+                sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::device);
 	});
 
-        /*
-        DPCT1078:1: Consider replacing memory_order::acq_rel with
-        memory_order::seq_cst for correctness if strong memory order
-        restrictions are needed.
-        */
-        sycl::atomic_fence(sycl::memory_order::acq_rel,
+        sycl::atomic_fence(sycl::memory_order::seq_cst,
                            sycl::memory_scope::work_group);
 
         unsigned int virtual_pos = Ouro::ldg_cg(&front_);
@@ -127,14 +120,14 @@ ChunkQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager,
 		if(chunk_index != DeletionMarker<index_t>::val)
 		{
 			chunk = ChunkType::getAccess(memory_manager->d_data, chunk_index);
-			const auto mode = chunk->access.allocPage(page_index);
+			const auto mode = chunk->access.allocPage(d,page_index);
 			
 			if (mode == ChunkType::ChunkAccessType::Mode::SUCCESSFULL)
 				break;
 			if (mode == ChunkType::ChunkAccessType::Mode::RE_ENQUEUE_CHUNK)
 			{
 				// Pretty special case, but we simply enqueue in the end again
-				enqueue(memory_manager, chunk_index);
+                          enqueue(d,memory_manager, chunk_index);
 				break;
 			}
 			if (mode == ChunkType::ChunkAccessType::Mode::DEQUEUE_CHUNK)
@@ -148,7 +141,7 @@ ChunkQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager,
                                 dpct::atomic_fetch_max<
                                     sycl::access::address_space::generic_space>(
                                     &front_, virtual_pos + 1);
-                                front_ptr_->dequeue<QueueChunkType::DEQUEUE_MODE::DELETE>(memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
+                                front_ptr_->template dequeue<QueueChunkType::DEQUEUE_MODE::DELETE>(d,memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
 				break;
 			}
 		}
@@ -162,12 +155,9 @@ ChunkQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager,
 			if (virtual_pos > Ouro::ldg_cg(&back_))
 			{
 				if (!FINAL_RELEASE)
-                                        printf("ThreadIDx: %d BlockIdx: %d - "
-                                               "Front: %u Back: %u - "
-                                               "ChunkIndex: %u\n",
-                                               item_ct1.get_local_id(2),
-                                               item_ct1.get_group(2),
-                                               virtual_pos, back_, chunk_index);
+                                  d.out<<"ThreadIDx: "<<d.item.get_local_id(0)<<" BlockIdx: "<<d.item.get_group(0)<<
+                                    " - Front: "<<virtual_pos<<" Back: "<<back_<<
+                                    " - ChunkIndex: "<<chunk_index<<sycl::endl;
                                 assert(0);
                         }
 		}
@@ -181,7 +171,7 @@ ChunkQueueVL<CHUNK_TYPE>::allocPage(MemoryManagerType *memory_manager,
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-ChunkQueueVL<CHUNK_TYPE>::freePage(MemoryManagerType *memory_manager,
+ChunkQueueVL<CHUNK_TYPE>::freePage(const Desc& d,MemoryManagerType *memory_manager,
                                    MemoryIndex index)
 {
 	using ChunkType = typename MemoryManagerType::ChunkType;
@@ -189,10 +179,10 @@ ChunkQueueVL<CHUNK_TYPE>::freePage(MemoryManagerType *memory_manager,
 	uint32_t chunk_index, page_index;
 	index.getIndex(chunk_index, page_index);
 	auto chunk = ChunkType::getAccess(memory_manager->d_data, index.getChunkIndex());
-	auto mode = chunk->access.freePage(index.getPageIndex());
+	auto mode = chunk->access.freePage(d,index.getPageIndex());
 	if(mode == ChunkType::ChunkAccessType::FreeMode::FIRST_FREE)
 	{
-		enqueue(memory_manager, index.getChunkIndex());
+          enqueue(d,memory_manager, index.getChunkIndex());
 	}
 	else if(mode == ChunkType::ChunkAccessType::FreeMode::DEQUEUE)
 	{
@@ -245,12 +235,12 @@ ChunkQueueVL<CHUNK_TYPE>::freePage(MemoryManagerType *memory_manager,
 template <typename CHUNK_TYPE>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-ChunkQueueVL<CHUNK_TYPE>::enqueue(MemoryManagerType *memory_manager,
+ChunkQueueVL<CHUNK_TYPE>::enqueue(const Desc& d,MemoryManagerType *memory_manager,
                                   index_t index)
 {
 	// Increase back and compute the position on a chunk
         const unsigned int virtual_pos =
             dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(
                 &back_, 1);
-        back_ptr_->enqueue(memory_manager, virtual_pos, index, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
+        back_ptr_->enqueue(d,memory_manager, virtual_pos, index, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
 }

@@ -108,10 +108,10 @@ struct ChunkAccess
 	}
 
 	// Free up a page, manipulating the count and availability mask, locking required
-        __dpct_inline__ FreeMode freePage(index_t queue_index);
+        __dpct_inline__ FreeMode freePage(const Desc&,index_t queue_index);
 
         // Try to allocate a page, locking required
-  __dpct_inline__ Mode allocPage(index_t &page_index, sycl::nd_item<1>);
+  __dpct_inline__ Mode allocPage(const Desc&,index_t &page_index);
 
         __dpct_inline__ bool tryFlashChunk();
 };

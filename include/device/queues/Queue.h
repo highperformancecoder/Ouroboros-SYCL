@@ -7,7 +7,7 @@
 class IndexQueue
 {
 public:
-        __dpct_inline__ void init(const sycl::nd_item<1> &item_ct1);
+        __dpct_inline__ void init(const Desc&);
 
         __dpct_inline__ bool enqueue(index_t i);
 

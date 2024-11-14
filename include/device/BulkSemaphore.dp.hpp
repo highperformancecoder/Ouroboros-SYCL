@@ -73,9 +73,8 @@ public:
 
 	// Try to allocate some resource
         template <typename T>
-        __dpct_inline__ void wait(int N, uint32_t number_pages_on_chunk,
-                                  T allocationFunction,
-                                  sycl::nd_item<1> item);
+        __dpct_inline__ void wait(const Desc&,int N, uint32_t number_pages_on_chunk,
+                                  T allocationFunction);
   
         // Try to increase resources
         __dpct_inline__ bool tryReduce(int N);

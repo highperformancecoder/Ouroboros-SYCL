@@ -19,13 +19,13 @@
 template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
           unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
 __dpct_inline__ void *OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE,
-                                      NUMBER_QUEUES>::allocPage(size_t size,const sycl::nd_item<1>& item)
+                                      NUMBER_QUEUES>::allocPage(const Desc& d,size_t size)
 {
 	if(statistics_enabled)
           Ouro::Atomic<unsigned>(stats.pageAllocCount)++;
 
 	// Allocate from chunks
-	return d_storage_reuse_queue[QI::getQueueIndex(size)].template allocPage<OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>>(this,item);
+	return d_storage_reuse_queue[QI::getQueueIndex(size)].template allocPage<OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>>(d,this);
 
 }
 
@@ -34,14 +34,14 @@ __dpct_inline__ void *OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE,
 template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
           unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
 __dpct_inline__ void
-OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage(
-    MemoryIndex index)
+OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage
+(const Desc& d, MemoryIndex index)
 {
 	if(statistics_enabled)
 		atomicAdd(&stats.pageFreeCount, 1);
 
 	// Deallocate page in chunk
-	d_storage_reuse_queue[QueueType::ChunkType::template getQueueIndexFromPage<QI>(d_data, index.getChunkIndex())].freePage(this, index);
+	d_storage_reuse_queue[QueueType::ChunkType::template getQueueIndexFromPage<QI>(d_data, index.getChunkIndex())].freePage(d,this, index);
 }
 
 // ##############################################################################################################################################
@@ -57,13 +57,13 @@ OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage(
 template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
           unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
 __dpct_inline__ void *
-OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::allocPage(size_t size, const sycl::nd_item<1>& item)
+OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::allocPage(const Desc& d, size_t size)
 {
 	if(statistics_enabled)
           Ouro::Atomic<unsigned>(stats.pageAllocCount)++;
 
 	// Allocate from pages
-	return d_storage_reuse_queue[QI::getQueueIndex(size)].template allocPage<OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>>(this,item);
+	return d_storage_reuse_queue[QI::getQueueIndex(size)].template allocPage<OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>>(d,this);
 
 }
 
@@ -72,14 +72,14 @@ OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::allocPage(
 template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
           unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
 __dpct_inline__ void
-OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage(
-    MemoryIndex index)
+OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage
+(const Desc& d, MemoryIndex index)
 {
 	if(statistics_enabled)
           Ouro::Atomic<unsigned>(stats.pageFreeCount)++;
 
 	// Deallocate page in chunk
-	d_storage_reuse_queue[QueueType::ChunkType::template getQueueIndexFromPage<QI>(d_data, index.getChunkIndex())].freePage(this, index);
+	d_storage_reuse_queue[QueueType::ChunkType::template getQueueIndexFromPage<QI>(d_data, index.getChunkIndex())].freePage(d, this, index);
 }
 
 // ##############################################################################################################################################
@@ -93,24 +93,24 @@ OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage(
 // ##############################################################################################################################################
 //
 template <class OUROBOROS, class... OUROBOROSES>
-__dpct_inline__ void *Ouroboros<OUROBOROS, OUROBOROSES...>::malloc(size_t size, const sycl::nd_item<1>& item)
+__dpct_inline__ void *Ouroboros<OUROBOROS, OUROBOROSES...>::malloc(const Desc& d, size_t size)
 {
 	if(size <= ConcreteOuroboros::LargestPageSize_)
 	{
-          return memory_manager.allocPage(size, item);
+          return memory_manager.allocPage(d, size);
 	}
-	return next_memory_manager.malloc(size,item);
+	return next_memory_manager.malloc(d, size);
 }
 
 // ##############################################################################################################################################
 //
 template <class OUROBOROS, class... OUROBOROSES>
-__dpct_inline__ void Ouroboros<OUROBOROS, OUROBOROSES...>::free(void *ptr)
+__dpct_inline__ void Ouroboros<OUROBOROS, OUROBOROSES...>::free(const Desc& d, void *ptr)
 {
 	if(!validOuroborosPointer(ptr))
 	{
-//		if(!FINAL_RELEASE && printDebug)
-//			printf("Freeing CUDA Memory!\n");
+		if(!FINAL_RELEASE && printDebug)
+                  d.out<<"Freeing CUDA Memory!\n";
 		::free(ptr);
 		return;
 	}
@@ -121,21 +121,21 @@ __dpct_inline__ void Ouroboros<OUROBOROS, OUROBOROSES...>::free(void *ptr)
 	auto page_size = chunk->page_size;
 	unsigned int page_index = (reinterpret_cast<unsigned long long>(ptr) - reinterpret_cast<unsigned long long>(chunk) - ChunkBase::meta_data_size_) / page_size;
 	// printf("%llu - %llu | Chunk-Index: %u | Page-Index: %u\n", reinterpret_cast<unsigned long long>(ptr), reinterpret_cast<unsigned long long>(ptr) - reinterpret_cast<unsigned long long>(memory.d_data), revised_chunk_index, page_index);
-	return freePageRecursive(page_size, MemoryIndex(revised_chunk_index, page_index));
+	return freePageRecursive(d, page_size, MemoryIndex(revised_chunk_index, page_index));
 }
 
 // ##############################################################################################################################################
 //
 template <class OUROBOROS, class... OUROBOROSES>
 __dpct_inline__ void
-Ouroboros<OUROBOROS, OUROBOROSES...>::freePageRecursive(unsigned int page_size,
+Ouroboros<OUROBOROS, OUROBOROSES...>::freePageRecursive(const Desc& d, unsigned int page_size,
                                                         MemoryIndex index)
 {
 	if(page_size <= ConcreteOuroboros::LargestPageSize_)
 	{
-		return memory_manager.freePage(index);
+          return memory_manager.freePage(d,index);
 	}
-	return next_memory_manager.freePageRecursive(page_size, index);
+	return next_memory_manager.freePageRecursive(d, page_size, index);
 }
 
 // ##############################################################################################################################################

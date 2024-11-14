@@ -33,13 +33,13 @@ struct PageQueue
 	// Methods
         __dpct_inline__ bool enqueue(index_t chunk_index);
 
-        __dpct_inline__ bool enqueueChunk(index_t chunk_index,
+        __dpct_inline__ bool enqueueChunk(const Desc&,index_t chunk_index,
                                           index_t pages_per_chunk);
 
-        __dpct_inline__ void dequeue(MemoryIndex &index);
+        __dpct_inline__ void dequeue(const Desc&,MemoryIndex &index);
 
         template <typename MemoryManagerType>
-        __dpct_inline__ void init(MemoryManagerType *memory_manager, sycl::nd_item<1> item);
+        __dpct_inline__ void init(const Desc&,MemoryManagerType *memory_manager);
 
         template <typename MemoryManagerType>
         __dpct_inline__ bool preFillQueue(MemoryManagerType *memory_manager,
@@ -56,10 +56,10 @@ struct PageQueue
                             index_t pages_per_chunk);
 
         template <typename MemoryManagerType>
-        __dpct_inline__ void *allocPage(MemoryManagerType *memory_manager,const sycl::nd_item<1>&);
+        __dpct_inline__ void *allocPage(const Desc&,MemoryManagerType *memory_manager);
 
         template <typename MemoryManagerType>
-        __dpct_inline__ void freePage(MemoryManagerType *memory_manager,
+        __dpct_inline__ void freePage(const Desc&,MemoryManagerType *memory_manager,
                                       MemoryIndex index);
 
         void resetQueue()
