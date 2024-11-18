@@ -9,8 +9,7 @@
 __dpct_inline__ bool BulkSemaphore::tryReduce(int N)
 {
 	// Reduce by N-1
-  //uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
-  uint32_t atomic_ret_val = (atomicValue+=Ouro::create2Complement(N)) & highest_value_mask;
+  uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
 	if((atomic_ret_val - N) < null_value)
 	{
                 dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(&value, N);
@@ -36,14 +35,13 @@ __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pa
 		if(getCount() - N >= 0)
 		{
 			// Try to decrement global count first
-                  //uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
-                  uint32_t atomic_ret_val = (atomicValue+=Ouro::create2Complement(N)) & highest_value_mask;
+                  uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
 			if((atomic_ret_val - N) >= null_value)
 			{
 				return;
 			}
 			// Increment count again
-			atomicValue+=N;
+			atomicAdd(&value, N);
 		}	
 
 		BulkSemaphore old_semaphore_value;
@@ -53,7 +51,7 @@ __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pa
 		BulkSemaphore new_semaphore_value{ Ouro::ldg_cg(&value) };
 		do
 		{
-			old_semaphore_value.atomicValue = new_semaphore_value.value;
+			old_semaphore_value = new_semaphore_value;
 			new_semaphore_value.getValues(count, expected, reserved);
 
 			if ((count + expected - reserved) < N)
@@ -77,8 +75,8 @@ __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pa
 
 			new_semaphore_value.createValueInternal(count, expected, reserved);
 			// Try to set new value
-                        //		} while ((new_semaphore_value.value = atomicCAS(&value, old_semaphore_value.value, new_semaphore_value.value))
-                } while ((new_semaphore_value.value = Ouro::atomicCAS(value, old_semaphore_value.value, new_semaphore_value.value)));
+                } while ((new_semaphore_value.value = atomicCAS(&value, old_semaphore_value.value, new_semaphore_value.value))
+                         != old_semaphore_value.value);
 
 		// ##############################################
 		// Return if chunk allocation or page allocation
@@ -115,8 +113,7 @@ __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pa
 
 			// ##############################################
 			// Reduce reserved count
-			//atomicAdd(&value, create64BitSubAdder_reserved(N));
-                        atomicValue+=create64BitSubAdder_reserved(N);
+			atomicAdd(&value, create64BitSubAdder_reserved(N));
 		}
 	}
 }

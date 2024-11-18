@@ -26,7 +26,6 @@ struct ChunkAccess
 
 	// Members
 	int count; // Number of available pages
-  Ouro::Atomic<int> atomicCount{count};
 	int size; // Number of pages
         /*
         DPCT1102:0: Zero-length arrays are not permitted in SYCL device code.

@@ -144,8 +144,10 @@ int main(int argc, char* argv[])
 
 	#endif
 
-	size_t instantitation_size = 8192ULL * 1024ULL * 1024ULL;
+	size_t instantitation_size = /*8192ULL*/512ULL * 1024ULL * 1024ULL;
+          
 	MemoryManagerType* memory_manager=sycl::malloc_shared<MemoryManagerType>(1, q_ct1);
+        new(memory_manager) MemoryManagerType;
 	memory_manager->initialize(q_ct1, instantitation_size);
 
 	int** d_memory{nullptr};
@@ -153,21 +155,21 @@ int main(int argc, char* argv[])
             d_memory = sycl::malloc_device<int *>(num_allocations, q_ct1)));
 
         int blockSize {256};
-	int gridSize {Ouro::divup(num_allocations, blockSize)};
 	float timing_allocation{0.0f};
 	float timing_free{0.0f};
-        dpct::event_ptr start, end;
+        //dpct::event_ptr start, end;
         for(auto i = 0; i < num_iterations; ++i)
 	{
-		start_clock(start, end);
-                q_ct1.submit([&](auto& h) {
+          auto start=clock();
+          q_ct1.submit([&](auto& h) {
                   sycl::stream out(1000000,1000,h);
-                  h.parallel_for(sycl::nd_range<1>(gridSize*blockSize, blockSize), [=](const sycl::nd_item<1>& item) {
+                  h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1>& item) {
                     Desc d{item,out};
                     d_testAllocation <MemoryManagerType>(d, memory_manager->getDeviceMemoryManager(), d_memory, num_allocations, allocation_size_byte);
                   });
                 });
-		timing_allocation += end_clock(start, end);
+                q_ct1.wait();
+		timing_allocation += float(clock()-start)/CLOCKS_PER_SEC;
 
                 HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
 
@@ -180,7 +182,7 @@ int main(int argc, char* argv[])
                 q_ct1.submit([&](auto& h) {
                   sycl::stream out(1000000,1000,h);
                   h.parallel_for(
-                                 sycl::nd_range<1>(gridSize*blockSize, blockSize),
+                                 sycl::nd_range<1>(num_allocations, blockSize),
                                  [=](sycl::nd_item<1> item) {
                                    Desc d{item,out};
                                    d_testWriteToMemory(d, d_memory, num_allocations,
@@ -199,7 +201,7 @@ int main(int argc, char* argv[])
                 q_ct1.submit([&](auto& h) {
                   sycl::stream out(1000000,1000,h);
                   h.parallel_for(
-                                 sycl::nd_range<1>(gridSize*blockSize, blockSize),
+                                 sycl::nd_range<1>(num_allocations, blockSize),
                                  [=](sycl::nd_item<1> item) {
                                    Desc d{item,out};
                                    d_testReadFromMemory(d,d_memory,
@@ -210,23 +212,24 @@ int main(int argc, char* argv[])
 
                 HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
 
-                start_clock(start, end);
+                start=clock();
                 q_ct1.submit([&](auto& h) {
                   sycl::stream out(1000000,1000,h);
-                  h.parallel_for(sycl::nd_range<1>(gridSize*blockSize, blockSize), [=](const sycl::nd_item<1> item) {
+                  h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1> item) {
                     Desc d{item,out};
                     d_testFree <MemoryManagerType>(d,memory_manager->getDeviceMemoryManager(), d_memory, num_allocations);
                   });
                 });
-		timing_free += end_clock(start, end);
+                q_ct1.wait();
+		timing_free += float(clock()-start)/CLOCKS_PER_SEC;
 
                 HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
         }
 	timing_allocation /= num_iterations;
 	timing_free /= num_iterations;
 
-	std::cout << "Timing Allocation: " << timing_allocation << "ms" << std::endl;
-	std::cout << "Timing       Free: " << timing_free << "ms" << std::endl;
+	std::cout << "Timing Allocation: " << timing_allocation << "s" << std::endl;
+	std::cout << "Timing       Free: " << timing_free << "s" << std::endl;
 
 	std::cout << "Testcase DONE!\n";
 	

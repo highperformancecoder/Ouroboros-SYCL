@@ -31,11 +31,8 @@ __dpct_inline__ bool IndexQueue::enqueue(index_t i)
 	{
 		//we have to wait in case there is still something in the spot
 		// note: as the filllevel could be increased by this thread, we are certain that the spot will become available
-                unsigned int pos =
-                    dpct::atomic_fetch_add<
-                        sycl::access::address_space::generic_space>(&back_, 1) %
-                    size_;
-                while (Ouro::atomicCAS(queue_[pos], DeletionMarker<index_t>::val, i) != DeletionMarker<index_t>::val)
+		unsigned int pos = atomicAdd(&back_, 1) % size_;
+		while (atomicCAS(queue_ + pos, DeletionMarker<index_t>::val, i) != DeletionMarker<index_t>::val)
 			Ouro::sleep();
 			
 		return true;

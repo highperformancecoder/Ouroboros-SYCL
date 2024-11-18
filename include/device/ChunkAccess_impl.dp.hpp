@@ -20,8 +20,7 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::freePage(const Desc&,index_t page_index)
 	//__threadfence_block();
         sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::work_group);
 
-        //	auto current_count = atomicAdd(&count, 1) + 1;
-        auto current_count = (atomicCount+=1) + 1;
+        auto current_count = atomicAdd(&count, 1) + 1;
 	if (current_count == 1)
 		return FreeMode::FIRST_FREE;
 	else if(current_count == size)
@@ -35,9 +34,7 @@ template <size_t SIZE, size_t SMALLEST_PAGE>
 __dpct_inline__ bool ChunkAccess<SIZE, SMALLEST_PAGE>::tryFlashChunk()
 {
 	// Try to reduce count to 0, if previous value is != size, someone tries do allocate from this chunk right now!
-	//return atomicCAS(&count, size, 0) == size;
-  auto sz=size;
-  return atomicCount.compare_exchange_strong(sz, 0, sycl::memory_order::relaxed, sycl::memory_scope::device);
+  return atomicCAS(&count, size, 0) == size;
 }
 
 // ##############################################################################################################################################
@@ -48,11 +45,10 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(const Desc& d,index_t &page_index)
 {
 	int current_count{ 0 };
 	auto mode = Mode::SUCCESSFULL;
-        //	while ((current_count = atomicSub(&count, 1)) <= 0)
-        while ((current_count = --atomicCount) <= 0)
+        while ((current_count = atomicSub(&count, 1)) <= 0)
 	{
-		if((current_count = ++atomicCount) < 0)
-			return Mode::CONTINUE;
+		if((current_count = atomicAdd(&count, 1)) < 0)
+                  return Mode::CONTINUE;
 
 		// If we observed 0 -> 1, we potentially want to re-enqueue this chunk
 		if(current_count == 0)
@@ -92,8 +88,10 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(const Desc& d,index_t &page_index)
 	// A second thread decrements the count and starts looking at mask 3 -> finds the bit immediately
 	// The first thread would now look at mask 2 - 3 - 4 ... and not find the bit on mask 1, as it already looked there
 	// Hence, we need a while(true) loop, since we are guaranteed to find a bit, but not guaranteed that someone steals our bit
-	// unsigned int iters{0U};
-	while(true)
+        unsigned int iters{0U};
+
+	//while(true)
+	while(++iters<100000)
 	{
 		// if(++iters >= 10000000)
 		// {
@@ -108,10 +106,11 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(const Desc& d,index_t &page_index)
 		auto current_mask = Ouro::ldg_cg(&availability_mask[(++bitmask_index) % MaximumBitMaskSize_]);
 		auto without_lower_part = current_mask >> offset;
 		auto final_mask = without_lower_part | (current_mask << (Ouro::sizeofInBits<MaskDataType>() - offset));
-
-		while((least_significant_bit = /*__ffsll*/sycl::ctz(final_mask)))
+		//while((least_significant_bit = /*__ffsll*/(sycl::ctz(final_mask)+1)&sizeof(fina))
+                while (final_mask)
 		{
-			--least_significant_bit; // Get actual bit position (as bit 0 return 1)
+                  //--least_significant_bit; // Get actual bit position (as bit 0 return 1)
+                  least_significant_bit=sycl::ctz(final_mask);
 			least_significant_bit = ((least_significant_bit + offset) % Ouro::sizeofInBits<MaskDataType>()); // Correct for shift
 			page_index = Ouro::sizeofInBits<MaskDataType>() * (bitmask_index % MaximumBitMaskSize_) // which mask
 				+ least_significant_bit; // which page on mask
@@ -121,8 +120,7 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(const Desc& d,index_t &page_index)
                         sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::work_group);
 
 			auto bit_pattern = createBitPattern(least_significant_bit);
-			//current_mask = atomicAnd(&availability_mask[bitmask_index % MaximumBitMaskSize_], bit_pattern);
-                        current_mask = atomicAnd(&availability_mask[bitmask_index % MaximumBitMaskSize_], bit_pattern);
+			current_mask = atomicAnd(&availability_mask[bitmask_index % MaximumBitMaskSize_], bit_pattern);
 
 			// Please do NOT reorder here
 			//__threadfence_block();

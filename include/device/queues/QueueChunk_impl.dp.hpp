@@ -102,7 +102,7 @@ QueueChunk<ChunkBase>::enqueue(const Desc& d,const unsigned int position,
 {
 	unsigned int counter{0};
 	unsigned int test_val{0U};
-	while ((test_val = Ouro::atomicCAS(queue_[position], DeletionMarker<QueueDataType>::val, element)) != DeletionMarker<QueueDataType>::val)
+	while ((test_val = atomicCAS(queue_ + position, DeletionMarker<QueueDataType>::val, element)) != DeletionMarker<QueueDataType>::val)
 	{
 		// TODO: Change this back!
 		// Ouro::sleep(counter);
@@ -501,7 +501,7 @@ QueueChunk<ChunkBase>::setBackPointer(QueueChunk<ChunkBase> **queue_next_ptr)
 	// INFO: setNextPointer is only called, if all spots on this chunk called their enqueue, at which point next_ must have been set already
 	QueueChunk<ChunkBase>* chunk_ptr{this};
 	// Try to set back pointer with current chunks next pointer, continue in loop if successful!
-	while(Ouro::atomicCAS((reinterpret_cast<unsigned long long&>(*queue_next_ptr)), reinterpret_cast<unsigned long long>(chunk_ptr), Ouro::ldg_cg(&chunk_ptr->next_)) 
+	while(atomicCAS((reinterpret_cast<unsigned long long*>(queue_next_ptr)), reinterpret_cast<unsigned long long>(chunk_ptr), Ouro::ldg_cg(&chunk_ptr->next_)) 
 		== reinterpret_cast<unsigned long long>(chunk_ptr))
 	{
 //		if(!FINAL_RELEASE && printDebug)
@@ -530,7 +530,7 @@ QueueChunk<ChunkBase>::setFrontPointer(QueueChunk<ChunkBase> **queue_front_ptr)
 	QueueChunk<ChunkBase>* chunk_ptr{this};
 	unsigned int ret_val{0};
 	// Try to set front pointer with current chunks next pointer, continue in loop if successfull
-	while(Ouro::atomicCAS((reinterpret_cast<unsigned long long&>(*queue_front_ptr)), reinterpret_cast<unsigned long long>(chunk_ptr), Ouro::ldg_cg(&chunk_ptr->next_)) 
+	while(atomicCAS((reinterpret_cast<unsigned long long*>(queue_front_ptr)), reinterpret_cast<unsigned long long>(chunk_ptr), Ouro::ldg_cg(&chunk_ptr->next_)) 
 		== reinterpret_cast<unsigned long long>(chunk_ptr))
 	{
 		++ret_val;
@@ -597,8 +597,8 @@ sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::work_group);
 		{
 			auto current_old_ptr_comp = current_old_ptr;
 			// Try to set the current old pointer to the current old next pointer
-			if((current_old_ptr = reinterpret_cast<QueueChunk<ChunkBase>*>
-                            (Ouro::atomicCAS((reinterpret_cast<unsigned long long&>(*queue_old_ptr)), reinterpret_cast<unsigned long long>(current_old_ptr), current_old_ptr->next_)))
+			if((current_old_ptr = reinterpret_cast<QueueChunk<ChunkBase>*>(
+				atomicCAS((reinterpret_cast<unsigned long long*>(queue_old_ptr)), reinterpret_cast<unsigned long long>(current_old_ptr), current_old_ptr->next_)))
 				== current_old_ptr_comp)
 			{
 				--free_count;

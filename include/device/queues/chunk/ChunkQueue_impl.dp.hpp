@@ -154,7 +154,7 @@ ChunkQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager
 			if (current_front > Ouro::ldg_cg(&back_))
 			{
                           d.out<<"ThreadIDx: "<<d.item.get_local_id(0)<<" BlockIdx: "<<d.item.get_group(0)<<" - We done fucked up! Front: "<<current_front<<" Back: "<<back_<<" : Count: "<<count_<<sycl::endl;
-                          //__trap();
+                          return nullptr;
 			}
 		}
 	}

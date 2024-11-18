@@ -86,7 +86,5 @@ public:
         __dpct_inline__ int signal(unsigned long long N);
 
         unsigned long long value{null_value};
-  Ouro::Atomic<unsigned long long> atomicValue{value};
-  BulkSemaphore& operator=(unsigned long long v) {atomicValue=v; return *this;}
 	static constexpr unsigned long long null_value {(1ULL << (middle_mask_shift - 1))};
 };

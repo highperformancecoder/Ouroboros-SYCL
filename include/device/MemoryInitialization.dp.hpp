@@ -196,8 +196,12 @@ void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, si
 	if (!memory.d_memory)
           //cudaMalloc(reinterpret_cast<void**>(&memory.d_memory), memory.allocationSize);
           memory.d_memory=sycl::malloc_device<memory_t>(memory.allocationSize, syclQueue);
-          
-
+        if (!memory.d_memory)
+          {
+            std::cout<<"memory allocation failed"<<std::endl;
+            abort();
+          }
+        
 	memory.d_data = memory.d_memory + size_();
 	memory.d_data_end = memory.d_memory + memory.allocationSize;
 

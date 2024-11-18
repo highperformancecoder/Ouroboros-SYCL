@@ -31,7 +31,7 @@ __dpct_inline__ bool PageQueue<ChunkType>::enqueue(index_t chunk_index)
 		// note: as the filllevel could be increased by this thread, we are certain that the spot will become available
 		// unsigned int pos = Ouro::modPower2<size_>(atomicAdd(&back_, 1));
 		unsigned int pos = Ouro::modPower2<size_>(Ouro::atomicAggInc(&back_));
-		while (Ouro::atomicCAS(queue_[pos], DeletionMarker<index_t>::val, chunk_index) != DeletionMarker<index_t>::val)
+		while (atomicCAS(queue_ + pos, DeletionMarker<index_t>::val, chunk_index) != DeletionMarker<index_t>::val)
 			Ouro::sleep();
 		return true;
 	}
@@ -72,7 +72,7 @@ __dpct_inline__ bool PageQueue<ChunkType>::enqueueChunk(const Desc& d,index_t ch
 		for(auto i = 0; i < pages_per_chunk; ++i)
 		{
 			index_t index = MemoryIndex::createIndex(chunk_index, i);
-			while (Ouro::atomicCAS(queue_[pos], DeletionMarker<index_t>::val, index) != DeletionMarker<index_t>::val)
+			while (atomicCAS(queue_ + pos, DeletionMarker<index_t>::val, index) != DeletionMarker<index_t>::val)
 			{
 				Ouro::sleep();
 			}
