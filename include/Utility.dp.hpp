@@ -104,9 +104,9 @@ namespace Ouro
 //#endif
   }
 
-  static __dpct_inline__ int lane_id(const sycl::nd_item<3> &item_ct1)
+  static __dpct_inline__ int lane_id(const sycl::nd_item<1> &item)
   {
-    return item_ct1.get_local_id(2) & (WARP_SIZE - 1);
+    return item.get_sub_group().get_local_linear_id();
   }
 
   __dpct_inline__ void sleep(unsigned int factor = 1)

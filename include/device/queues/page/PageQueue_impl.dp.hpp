@@ -68,7 +68,7 @@ __dpct_inline__ bool PageQueue<ChunkType>::enqueueChunk(const Desc& d,index_t ch
 	{
 		//we have to wait in case there is still something in the spot
 		// note: as the filllevel could be increased by this thread, we are certain that the spot will become available
-          unsigned int pos = Ouro::modPower2<size_>(Ouro::Atomic<unsigned>(back_+=pages_per_chunk));
+          unsigned int pos = Ouro::modPower2<size_>(atomicAdd(&back_, pages_per_chunk));
 		for(auto i = 0; i < pages_per_chunk; ++i)
 		{
 			index_t index = MemoryIndex::createIndex(chunk_index, i);
@@ -88,7 +88,7 @@ __dpct_inline__ bool PageQueue<ChunkType>::enqueueChunk(const Desc& d,index_t ch
 // ##############################################################################################################################################
 //
 template <typename ChunkType>
-__dpct_inline__ void PageQueue<ChunkType>::dequeue(const Desc&, MemoryIndex &index)
+__dpct_inline__ void PageQueue<ChunkType>::dequeue(const Desc& d, MemoryIndex &index)
 {
 	// Dequeue from queue
 	// #if (__CUDA_ARCH__ < 700)
@@ -97,16 +97,18 @@ __dpct_inline__ void PageQueue<ChunkType>::dequeue(const Desc&, MemoryIndex &ind
 	unsigned int pos = Ouro::modPower2<size_>(Ouro::atomicAggInc(&front_));
 	// #endif
 	auto counter {0U};
-	while ((index.index = Ouro::Atomic<unsigned>(queue_[pos]).exchange(DeletionMarker<index_t>::val)) == DeletionMarker<index_t>::val)
+	while ((index.index = atomicExch(queue_ + pos, DeletionMarker<index_t>::val)) == DeletionMarker<index_t>::val)
 	{
 		Ouro::sleep(counter++);
-		// if(counter++ > 1000000)
-		// {
-		// 	int count, reserved,expected;
-		// 	semaphore.getValues(count, reserved, expected);
-		// 	printf("%d - %d - %d We died in PageQueue::dequeue waiting on a value! :( pos: %u | %d - %d - %d\n", blockIdx.x, threadIdx.x, Ouro::lane_id(), pos, count, reserved, expected);
-		// 	__trap();
-		// }
+		 if(counter++ > 1000000)
+		 {
+		 	int count, reserved,expected;
+		 	semaphore.getValues(count, reserved, expected);
+                        d.out<<d.item.get_group(0)<<" - "<<d.item.get_local_id(0)<<" - "<<Ouro::lane_id(d.item)<<
+                          " We died in PageQueue::dequeue waiting on a value! :( pos: "<<pos<<" | "<<count<<" - "<<
+                          reserved<<" - "<<expected<<sycl::endl;
+		 	return;
+		 }
 	}
 }
 
@@ -130,8 +132,8 @@ PageQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
                     d.out<<"TODO: Could not allocate chunk!!!\n";
 		}
 
-	 	ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
-	 	enqueueChunk(d,chunk_index, pages_per_chunk);
+          ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
+          enqueueChunk(d,chunk_index, pages_per_chunk);
 	});
 	
 	// Get index from queue

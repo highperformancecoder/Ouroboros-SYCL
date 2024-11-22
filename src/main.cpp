@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
         HANDLE_ERROR(DPCT_CHECK_ERROR(
             d_memory = sycl::malloc_device<int *>(num_allocations, q_ct1)));
 
-        int blockSize {256};
+        int blockSize=16;//256;
 	float timing_allocation{0.0f};
 	float timing_free{0.0f};
         //dpct::event_ptr start, end;

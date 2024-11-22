@@ -105,9 +105,8 @@ ChunkQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager
 	{
 		if (!memory_manager->template allocateChunk<false>(chunk_index))
 		{
-                  // TODO
-//			if (!FINAL_RELEASE)
-//				printf("TODO: Could not allocate chunk!!!\n");
+                  if(!FINAL_RELEASE)
+                    d.out<<"TODO: Could not allocate chunk!!!\n";
 		}
 	 	chunk = ChunkType::initializeEmptyChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
 		 // Please do NOT reorder here
