@@ -57,11 +57,11 @@ struct ChunkQueueVA
         template <typename MemoryManagerType>
         __dpct_inline__ void init(const Desc&,MemoryManagerType *memory_manager);
 
-        template <typename MemoryManagerType>
-        __dpct_inline__ bool
-        enqueueInitialChunk(MemoryManagerType *memory_manager,
-                            index_t chunk_index, int available_pages,
-                            index_t pages_per_chunk);
+//        template <typename MemoryManagerType>
+//        __dpct_inline__ bool
+//        enqueueInitialChunk(const Desc&,MemoryManagerType *memory_manager,
+//                            index_t chunk_index, int available_pages,
+//                            index_t pages_per_chunk);
 
         template <typename MemoryManagerType>
         __dpct_inline__ void *allocPage(const Desc&,MemoryManagerType *memory_manager);

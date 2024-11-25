@@ -127,8 +127,7 @@ namespace Ouro
 #endif
   }
 
-#ifdef DPCT_COMPATIBILITY_TEMP
-#if (DPCT_COMPATIBILITY_TEMP >= 700)
+#if defined(DPCT_COMPATIBILITY_TEMP) && (DPCT_COMPATIBILITY_TEMP >= 700)
   __dpct_inline__ int atomicAggInc(unsigned int *ptr,
                                    const sycl::nd_item<3> &item_ct1)
   {
@@ -160,14 +159,6 @@ namespace Ouro
     return ++Ouro::Atomic<unsigned>(*ptr);
   }
 #endif
-#else
-  __dpct_inline__ int atomicAggInc(unsigned int *ptr)
-  {
-    auto val = *ptr;
-    *ptr += 1;
-    return val;
-  }
-#endif
 
 }
 
@@ -189,7 +180,7 @@ template <class T, class U> T atomicMax(T* x, U v)
 template <class T, class U> T atomicExch(T* x, U v)
 {return Ouro::Atomic<T>(*x).exchange(v);}
 
-template <class T, class U, class V> T atomicCAS(T* x, U expected, V desired)
+template <class T> T atomicCAS(T* x, T expected, T desired)
 {
   Ouro::Atomic<T>(*x).compare_exchange_strong(expected,desired);
   return expected; // value updated to previous value of x by above

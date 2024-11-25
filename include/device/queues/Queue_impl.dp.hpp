@@ -24,9 +24,7 @@ __dpct_inline__ void IndexQueue::init(const Desc& d)
 
 __dpct_inline__ bool IndexQueue::enqueue(index_t i)
 {
-        int fill =
-            dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(
-                &count_, 1);
+	int fill = atomicAdd(&count_, 1);
         if (fill < static_cast<int>(size_))
 	{
 		//we have to wait in case there is still something in the spot

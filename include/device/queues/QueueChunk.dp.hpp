@@ -57,7 +57,7 @@ struct QueueChunk : public CommonChunk
         __dpct_inline__ QueueChunk(QueueDataType *queue, index_t chunk_index,
                                    unsigned int virtual_start)
             : CommonChunk{0}, queue_{queue}, chunk_index_{chunk_index},
-              virtual_start_{virtual_start} {}
+              virtual_start_{virtual_start} {cleanChunk();}
 
         // TODO: test with the real version later on
         __dpct_inline__ void cleanChunk()
@@ -75,8 +75,8 @@ struct QueueChunk : public CommonChunk
 
 	// ##############################################################################################################################################
 	//
-        __dpct_inline__ void enqueueInitial(const unsigned int position,
-                                            const QueueDataType element);
+//        __dpct_inline__ void enqueueInitial(const Desc&,const unsigned int position,
+//                                            const QueueDataType element);
 
         // ##############################################################################################################################################
 	//
@@ -85,13 +85,13 @@ struct QueueChunk : public CommonChunk
 
         // ##############################################################################################################################################
 	//
-        __dpct_inline__ unsigned int enqueueLinked(const unsigned int position,
+        __dpct_inline__ unsigned int enqueueLinked(const Desc&,const unsigned int position,
                                                    const QueueDataType element);
 
         // ##############################################################################################################################################
 	//
         __dpct_inline__ unsigned int
-        enqueueLinkedv4(const unsigned int position, const index_t chunk_index,
+        enqueueLinkedv4(const Desc&,const unsigned int position, const index_t chunk_index,
                         const index_t start_index);
 
         // ##############################################################################################################################################
@@ -123,7 +123,7 @@ struct QueueChunk : public CommonChunk
 
         // ##############################################################################################################################################
 	//
-        __dpct_inline__ bool deleteElement(const unsigned int position);
+        __dpct_inline__ bool deleteElement(const Desc&,const unsigned int position);
 
         // ##############################################################################################################################################
 	//

@@ -82,16 +82,17 @@ __dpct_inline__ void QueueChunk<ChunkBase>::guaranteeWarpSyncPerChunk
 
 // ##############################################################################################################################################
 //
-template <typename ChunkBase>
-__dpct_inline__ void
-QueueChunk<ChunkBase>::enqueueInitial(const unsigned int position,
-                                      const QueueDataType element)
-{
-	queue_[position] = element;
-	// Increment both counters
-	count_ += countAddValueEnqueue<1>();
-	//printf("%d - %d | Position: %u - Element: %u - Enqueue initial: %u - %u | %p\n", threadIdx.x, blockIdx.x, position, element, extractCounterA(count_), extractCounterB(count_), queue_);
-}
+//template <typename ChunkBase>
+//__dpct_inline__ void
+//QueueChunk<ChunkBase>::enqueueInitial(const Desc& d,const unsigned int position,
+//                                      const QueueDataType element)
+//{
+//  
+//	queue_[position] = element;
+//	// Increment both counters
+//	count_ += countAddValueEnqueue<1>();
+//	//printf("%d - %d | Position: %u - Element: %u - Enqueue initial: %u - %u | %p\n", threadIdx.x, blockIdx.x, position, element, extractCounterA(count_), extractCounterB(count_), queue_);
+//}
 
 // ##############################################################################################################################################
 //
@@ -109,9 +110,13 @@ QueueChunk<ChunkBase>::enqueue(const Desc& d,const unsigned int position,
 		Ouro::sleep();
 		if(++counter > (1000*1000*10))
 		{
-			//if (!FINAL_RELEASE)
-			//	printf("%d - %d | Horrible death in enqueue: Position: %u - Chunk Index: %u -> Value: %u | %p\n", threadIdx.x, blockIdx.x, position, chunk_index_, test_val, queue_);
-			//__trap(); // TODO
+                  if (!FINAL_RELEASE)
+                    d.out<<d.item.get_local_id(0)<<" - "<<d.item.get_group(0)<<
+                      " | Horrible death in enqueue: Position: " <<
+                      position << " - Chunk Index: "<<
+                      chunk_index_ << " -> Value: "<<
+                      test_val << " | "<<queue_<<sycl::endl;
+                  return 0;
 		}
 	}
 
@@ -123,11 +128,10 @@ QueueChunk<ChunkBase>::enqueue(const Desc& d,const unsigned int position,
 //
 template <typename ChunkBase>
 __dpct_inline__ unsigned int
-QueueChunk<ChunkBase>::enqueueLinked(const unsigned int position,
+QueueChunk<ChunkBase>::enqueueLinked(const Desc& d,const unsigned int position,
                                      const QueueDataType element)
 {
-  //atomicExch(queue_ + position, element);
-  Ouro::Atomic<unsigned>(queue_[position]).exchange(element);
+  atomicExch(queue_ + position, element);
 
 	// Increment both counters
 	return atomicAdd(&count_, countAddValueEnqueue<1>());
@@ -137,7 +141,7 @@ QueueChunk<ChunkBase>::enqueueLinked(const unsigned int position,
 //
 template <typename ChunkBase>
 __dpct_inline__ unsigned int
-QueueChunk<ChunkBase>::enqueueLinkedv4(const unsigned int position,
+QueueChunk<ChunkBase>::enqueueLinkedv4(const Desc& d,const unsigned int position,
                                        const index_t chunk_index,
                                        const index_t start_index)
 {
@@ -191,7 +195,7 @@ __dpct_inline__ void QueueChunk<ChunkBase>::enqueue(const Desc& d,
                 sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::work_group);
 
 		// Finally enqueue on this chunk - get back counter and just take lower 32bit -> counterA | atomic returns value before add so we need + 1
-		auto current_count = chunk_ptr->enqueueLinked(local_position, element);
+		auto current_count = chunk_ptr->enqueueLinked(d,local_position, element);
 		if(extractCounterA(current_count) + 1 == num_spots_)
 		{
 			// This chunk is now full, we can move the back pointer ahead to the next chunk
@@ -267,7 +271,7 @@ QueueChunk<ChunkBase>::enqueueChunk(const Desc& d, MemoryManagerType *memory_man
 			unsigned int current_count{0};
 			if(mode == Mode::SINGLE)
 			{
-				current_count = chunk_ptr->enqueueLinked(local_position, MemoryIndex::createIndex(chunk_index, current_index_offset + start_index));
+                          current_count = chunk_ptr->enqueueLinked(d,local_position, MemoryIndex::createIndex(chunk_index, current_index_offset + start_index));
 				if(extractCounterA(current_count) + 1 == num_spots_)
 				{
 					// This chunk is now full, we can move the back pointer ahead to the next chunk
@@ -287,7 +291,7 @@ QueueChunk<ChunkBase>::enqueueChunk(const Desc& d, MemoryManagerType *memory_man
 			}
 			else
 			{
-				current_count = chunk_ptr->enqueueLinkedv4(local_position, chunk_index, current_index_offset + start_index);
+                          current_count = chunk_ptr->enqueueLinkedv4(d,local_position, chunk_index, current_index_offset + start_index);
 				if(extractCounterA(current_count) + vector_width == num_spots_)
 				{
 					// This chunk is now full, we can move the back pointer ahead to the next chunk
@@ -362,15 +366,13 @@ QueueChunk<ChunkBase>::enqueueChunk(const Desc& d, MemoryManagerType *memory_man
 //
 template <typename ChunkBase>
 template <typename MemoryManagerType>
-__dpct_inline__ bool QueueChunk<ChunkBase>::dequeue(const Desc&,
+__dpct_inline__ bool QueueChunk<ChunkBase>::dequeue(const Desc& d,
     const unsigned int position, QueueDataType &element,
     MemoryManagerType *memory_manager, QueueChunk<ChunkBase> **queue_front_ptr)
 {
 	unsigned int counter{0};
 	// Element might currently not yet be present (enqueue advertised it already, but has not put element in) -> spin on value!
-        //while ((element = atomicExch(queue_ + position, DeletionMarker<QueueDataType>::val)) == DeletionMarker<QueueDataType>::val)
-        Ouro::Atomic<unsigned> atomicQP(queue_[position]);
-	while ((element = atomicQP.exchange(DeletionMarker<QueueDataType>::val)) == DeletionMarker<QueueDataType>::val)
+        while ((element = atomicExch(queue_ + position, DeletionMarker<QueueDataType>::val)) == DeletionMarker<QueueDataType>::val)
 	{
 		Ouro::sleep(counter);
 		if(++counter > (1000*1000*10))
@@ -392,11 +394,10 @@ __dpct_inline__ bool QueueChunk<ChunkBase>::dequeue(const Desc&,
 //
 template <typename ChunkBase>
 __dpct_inline__ bool
-QueueChunk<ChunkBase>::deleteElement(const unsigned int position)
+QueueChunk<ChunkBase>::deleteElement(const Desc& d,const unsigned int position)
 {
 	// Since we don't care about the value, we can simply delete it (no matter if enqueue might delete it as well even later)
-  //atomicExch(&queue_[position], DeletionMarker<QueueDataType>::val);
-  Ouro::Atomic<unsigned>{queue_[position]}=DeletionMarker<QueueDataType>::val;
+  atomicExch(&queue_[position], DeletionMarker<QueueDataType>::val);
 
 	// We have taken our element out - Return true if this chunk is empty and can be removed from the chunk list
 	// We subtract from counterB, so at this point, if counterB is 0 and counterA is full, then this chunk is empty
@@ -417,7 +418,7 @@ __dpct_inline__ void QueueChunk<ChunkBase>::dequeue(const Desc& d,
   guaranteeWarpSyncPerChunk(d, position, "Dequeue", [&](QueueChunk<ChunkBase>* chunk_ptr)
 	{
 		const auto local_position = (Ouro::modPower2<num_spots_>(position));
-		if(Mode == DEQUEUE_MODE::DEQUEUE ? chunk_ptr->dequeue(d,local_position, element, memory_manager, queue_front_ptr) : chunk_ptr->deleteElement(local_position))
+		if(Mode == DEQUEUE_MODE::DEQUEUE ? chunk_ptr->dequeue(d,local_position, element, memory_manager, queue_front_ptr) : chunk_ptr->deleteElement(d,local_position))
 		{
 			// We can remove this chunk
 			auto how_many_removed = chunk_ptr->setFrontPointer(queue_front_ptr);
