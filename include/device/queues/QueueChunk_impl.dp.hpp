@@ -60,9 +60,12 @@ __dpct_inline__ void QueueChunk<ChunkBase>::guaranteeWarpSyncPerChunk
 				{
 					if(counter++ > (1000*1000*10))
 					{
-						//if(!FINAL_RELEASE)
-						//	printf("%d : %d died in gWS from %s index: %u - ptr: %p | mask: %x\n", threadIdx.x, blockIdx.x, message, chunk_ptr->chunk_index_, chunk_ptr, active_mask);
-						//__trap(); // TODO
+                                          if(!FINAL_RELEASE)
+                                            d.out<<d.item.get_local_id(0)<<" : "<<d.item.get_group(0)<<
+                                              " died in gWS from "<<message<<
+                                              " index: "<<chunk_ptr->chunk_index_<<
+                                              " - ptr: "<<chunk_ptr<<sycl::endl;
+                                          return;
 					}
 					Ouro::sleep(counter);
 				}
@@ -184,8 +187,7 @@ __dpct_inline__ void QueueChunk<ChunkBase>::enqueue(const Desc& d,
 			//__threadfence();
                         sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
 
-                        //atomicExch(&chunk_ptr->next_, reinterpret_cast<unsigned long long>(potential_next));
-                        Ouro::Atomic<unsigned long long>(chunk_ptr->next_)=reinterpret_cast<unsigned long long>(potential_next);
+                        atomicExch(&chunk_ptr->next_, reinterpret_cast<unsigned long long>(potential_next));
 //			if(!FINAL_RELEASE && printDebug)
 //				printf("E - %d : %d Allocate a new chunk for the queue with index: %u and address: %p\n", threadIdx.x, blockIdx.x, chunk_index, potential_next);
 		}
@@ -261,8 +263,7 @@ QueueChunk<ChunkBase>::enqueueChunk(const Desc& d, MemoryManagerType *memory_man
 			if(local_position == 0)
 			{
 				// In this case we can set our current next pointer to the previously allocated chunk
-                          //atomicExch(&chunk_ptr->next_, reinterpret_cast<unsigned long long>(potential_next));
-                          Ouro::Atomic<unsigned long long>(chunk_ptr->next_)=reinterpret_cast<unsigned long long>(potential_next);
+                          atomicExch(&chunk_ptr->next_, reinterpret_cast<unsigned long long>(potential_next));
 //				if(!FINAL_RELEASE && printDebug)
 //					printf("EC - %d : %d Allocate a new chunk for the queue with index: %u and address: %p\n", threadIdx.x, blockIdx.x, queue_chunk_index, potential_next);
 			}
@@ -376,12 +377,16 @@ __dpct_inline__ bool QueueChunk<ChunkBase>::dequeue(const Desc& d,
 	{
 		Ouro::sleep(counter);
 		if(++counter > (1000*1000*10))
-		{
-//			if (!FINAL_RELEASE)
-//				printf("%d : %d | Horrible death in dequeue: Position: %u - Chunk Index: %u - virtual_pos: %u - frontpointerstart: %u\n", threadIdx.x, blockIdx.x, position, chunk_index_, virtual_start_ + position, (queue_front_ptr)?(*queue_front_ptr)->virtual_start_ : 0);
-//
-//			__trap(); // TODO
-		}
+                  {
+                    if (!FINAL_RELEASE)
+                      d.out<<d.item.get_local_id(0)<<" - "<<d.item.get_group(0)<<
+                        " | Horrible death in dequeue: Position: " <<
+                        position << " - Chunk Index: "<<
+                        chunk_index_ << "  - virtual_pos: "<<
+                        virtual_start_ + position<< "  - frontpointerstart: "<<
+                        ((queue_front_ptr)?(*queue_front_ptr)->virtual_start_ : 0)<<sycl::endl;
+                    return false;
+                  }
 	}
 
 	// We have taken our element out - Return true if this chunk is empty and can be removed from the chunk list
@@ -561,12 +566,11 @@ __dpct_inline__ void QueueChunk<ChunkBase>::setOldPointer(
 	// Read current old count
 	auto current_old_count = Ouro::ldg_cg(old_count);
 
-        Ouro::Atomic<unsigned> atomicOldCount(*old_count);
 	// This branch is only taken about "LARGEST_OLD_COUNT_VALUE" times, if old_count is larger we already know how much to free up
 	if(current_old_count < LARGEST_OLD_COUNT_VALUE)
 	{
 		// Increase the old_count by how much we want to free up
-		current_old_count = atomicOldCount+=free_count;
+		current_old_count = atomicAdd(old_count, free_count);
 		
 		// Check if the old count is smaller than threshold
 		if(current_old_count < LARGEST_OLD_COUNT_VALUE)
@@ -576,7 +580,7 @@ __dpct_inline__ void QueueChunk<ChunkBase>::setOldPointer(
 			{
 				// We can free some old_chunks, cut old_count back
 				free_count = (current_old_count + free_count) - LARGEST_OLD_COUNT_VALUE;
-				atomicOldCount-=free_count;
+				atomicSub(old_count, free_count);
 			}
 			else
 			{
@@ -588,7 +592,7 @@ __dpct_inline__ void QueueChunk<ChunkBase>::setOldPointer(
 	
 	// Do NOT reorder here
 	//__threadfence_block();
-sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::work_group);
+        sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::work_group);
 
 // Free up some old chunks
 	if(free_count)

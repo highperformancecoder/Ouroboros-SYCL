@@ -123,7 +123,6 @@ PageQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
 	MemoryIndex index;
 	uint32_t chunk_index;
 	auto pages_per_chunk = MemoryManagerType::QI::getPagesPerChunkFromQueueIndex(queue_index_);
-
 	semaphore.wait(d, 1, pages_per_chunk, [&]()
 	{
           if (!memory_manager->template allocateChunk<false>(chunk_index))

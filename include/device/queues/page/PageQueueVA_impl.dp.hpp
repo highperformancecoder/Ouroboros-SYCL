@@ -45,8 +45,7 @@ PageQueueVA<CHUNK_TYPE>::enqueueChunk(const Desc& d, MemoryManagerType *memory_m
 {
 	if (semaphore.signalExpected(pages_per_chunk) < num_spots_)
 	{
-          //unsigned int virtual_pos = atomicAdd(&back_, pages_per_chunk);
-          unsigned int virtual_pos = Ouro::Atomic<unsigned>(back_)+=pages_per_chunk;
+          unsigned int virtual_pos = atomicAdd(&back_, pages_per_chunk);
 		unsigned int chunk_id = computeChunkID(virtual_pos);
 		auto position = Ouro::modPower2<QueueChunkType::num_spots_>(virtual_pos);
 
@@ -64,7 +63,7 @@ PageQueueVA<CHUNK_TYPE>::enqueueChunk(const Desc& d, MemoryManagerType *memory_m
                         with memory_order::seq_cst for correctness if strong
                         memory order restrictions are needed.
                         */
-                        sycl::atomic_fence(sycl::memory_order::acq_rel,
+                        sycl::atomic_fence(sycl::memory_order::seq_cst,
                                            sycl::memory_scope::work_group);
 
                         atomicExch(&queue_[Ouro::modPower2<size_>(position != 0 ? (chunk_id + 2) : (chunk_id + 1))], new_queue_index);
@@ -183,7 +182,7 @@ PageQueueVA<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manag
 	 	enqueueChunk(d,memory_manager, chunk_index, pages_per_chunk);
 	});
 
-	// unsigned int virtual_pos = atomicAdd(&front_, 1);
+        // unsigned int virtual_pos = atomicAdd(&front_, 1);
 	unsigned int virtual_pos = Ouro::atomicAggInc(&front_);
 	unsigned int chunk_id = computeChunkID(virtual_pos);
 
@@ -233,8 +232,7 @@ __dpct_inline__ void
 PageQueueVA<CHUNK_TYPE>::enqueue(const Desc& d,MemoryManagerType *memory_manager,
                                  index_t index)
 {
-	// const unsigned int virtual_pos = atomicAdd(&back_, 1);
-  Ouro::Atomic<unsigned>(back_)++;
+  // const unsigned int virtual_pos = atomicAdd(&back_, 1);
 	const unsigned int virtual_pos = Ouro::atomicAggInc(&back_);
 	auto chunk_id = computeChunkID(virtual_pos);
 	const auto position = (virtual_pos % QueueChunkType::num_spots_);
@@ -251,7 +249,7 @@ PageQueueVA<CHUNK_TYPE>::enqueue(const Desc& d,MemoryManagerType *memory_manager
                 memory_order::seq_cst for correctness if strong memory order
                 restrictions are needed.
                 */
-                sycl::atomic_fence(sycl::memory_order::acq_rel, sycl::memory_scope::device);
+                sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
 
                 atomicExch(&queue_[(chunk_id + 1) % size_], chunk_index);
 	}

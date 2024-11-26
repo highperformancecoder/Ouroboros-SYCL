@@ -8,7 +8,7 @@ static constexpr unsigned int SLEEP_TIME{ 10 };
 // Queue Params
 static constexpr int NUM_QUEUES{ 10 }; // How many queues to instantiate per Ouroboros instance
 static constexpr int chunk_queue_size{ 65536 }; // Size of chunk queue for re-use of chunks
-static constexpr int page_queue_size{ 1024 * 1024 * 8 }; // Size of page queue
+static constexpr int page_queue_size{ 1024 * 1024 * 8}; // Size of page queue
 static constexpr int virtual_queue_size{ 16384 }; // Size of virtual page queue
 static constexpr unsigned int LARGEST_OLD_COUNT_VALUE{10}; // How many old chunks to holds back before releasing them
 static constexpr float LOWER_FILL_LEVEL_PERCENTAGE{0.1f}; // When to start releasing chunks from chunk queue

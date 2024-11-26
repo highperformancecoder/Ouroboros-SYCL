@@ -78,9 +78,10 @@ int main(int argc, char* argv[])
  dpct::device_ext &dev_ct1 = dpct::get_current_device();
  sycl::queue &q_ct1 = dev_ct1.in_order_queue();
         std::cout << "Usage: num_allocations allocation_size_in_bytes\n";
-	int num_allocations{10000};
+	int num_allocations{8192};
 	int allocation_size_byte{16};
-	int num_iterations {10};
+	int num_iterations=10;
+        int blockSize=128;//256;
 	if(argc >= 2)
 	{
 		num_allocations = atoi(argv[1]);
@@ -89,6 +90,8 @@ int main(int argc, char* argv[])
 			allocation_size_byte = atoi(argv[2]);
 		}
 	}
+        // num_allocations needs to be a multiple of blocksize for certain SYCL devices.
+        num_allocations=(num_allocations/blockSize)*blockSize;
 	allocation_size_byte = Ouro::alignment(allocation_size_byte, sizeof(int));
 	std::cout << "Number of Allocations: " << num_allocations << " | Allocation Size: " << allocation_size_byte << " | Iterations: " << num_iterations << std::endl;
 
@@ -154,7 +157,6 @@ int main(int argc, char* argv[])
         HANDLE_ERROR(DPCT_CHECK_ERROR(
             d_memory = sycl::malloc_device<int *>(num_allocations, q_ct1)));
 
-        int blockSize=16;//256;
 	float timing_allocation{0.0f};
 	float timing_free{0.0f};
         //dpct::event_ptr start, end;
