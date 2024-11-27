@@ -1,6 +1,6 @@
 #pragma once
 
-static constexpr bool FINAL_RELEASE=false;//true;
+static constexpr bool FINAL_RELEASE=true;
 
 // General Params
 static constexpr unsigned int SLEEP_TIME{ 10 };

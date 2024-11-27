@@ -227,11 +227,11 @@ void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, si
 	updateMemoryManagerDevice(*this);
 
 	int block_size = 256;
-	int grid_size = memory.maxChunks;
+	int grid_size = memory.maxChunks*block_size;
 	if(totalNumberVirtualQueues())
 	{
           // Clean all chunks
-          syclQueue.parallel_for(sycl::nd_range<1>(grid_size*block_size, block_size), [this](sycl::nd_item<1> item) {
+          syclQueue.parallel_for(sycl::nd_range<1>(grid_size, block_size), [this](sycl::nd_item<1> item) {
             d_cleanChunks<MyType>(reinterpret_cast<MyType*>(memory.d_memory), 0, item);
           });
 	}
@@ -239,15 +239,10 @@ void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, si
         HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
 
         block_size = 256;
-	//cudaOccupancyMaxActiveBlocksPerMultiprocessor(&grid_size, d_initializeOuroborosQueues<MyType>, block_size, 0U);
-        grid_size=dev_ct1.get_info<sycl::info::device::max_compute_units>()*dev_ct1.get_info<sycl::info::device::max_work_group_size>()/block_size; // TODO - this is my guess...
-        std::cout<<"initialising with "<<grid_size*block_size<<" "<<block_size<<std::endl;
-//	int num_sm_per_device{0};
-//        num_sm_per_device = dpct::get_device(0).get_max_compute_units();
-//        grid_size *= num_sm_per_device;
+        grid_size=dev_ct1.get_info<sycl::info::device::max_compute_units>()*dev_ct1.get_info<sycl::info::device::max_work_group_size>();
         syclQueue.submit([&](auto& h) {
           sycl::stream out(1000000,1000,h);
-          h.parallel_for(sycl::nd_range<1>(grid_size*block_size, block_size),
+          h.parallel_for(sycl::nd_range<1>(grid_size, block_size),
                          [=,this](sycl::nd_item<1> item) {
                            Desc d{item,out};
                            d_initializeOuroborosQueues<MyType>(d,reinterpret_cast<MyType*>(memory.d_memory));
@@ -255,7 +250,6 @@ void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, si
         });
 
         HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
-        std::cout<<"after initialisation"<<std::endl;
 
         updateMemoryManagerHost(*this);
 

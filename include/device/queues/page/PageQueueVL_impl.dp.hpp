@@ -15,8 +15,7 @@ template <typename MemoryManagerType>
 __dpct_inline__ void
 PageQueueVL<CHUNK_TYPE>::init(const Desc& d,MemoryManagerType *memory_manager)
 {
-        if ((d.item.get_group(2) * d.item.get_local_range(2) +
-             d.item.get_local_id(2)) == 0)
+  if (d.item.get_global_linear_id() == 0)
         {
 		// Allocate 1 chunk per queue in the beginning
 		index_t chunk_index{0};
@@ -42,8 +41,7 @@ PageQueueVL<CHUNK_TYPE>::enqueueChunk(const Desc& d,MemoryManagerType *memory_ma
                                       index_t chunk_index,
                                       index_t pages_per_chunk)
 {
-  //unsigned int virtual_pos = atomicAdd(&back_, pages_per_chunk);
-  unsigned int virtual_pos = Ouro::Atomic<unsigned>(back_)+=pages_per_chunk;
+  unsigned int virtual_pos = atomicAdd(&back_, pages_per_chunk);
 
   back_ptr_->enqueueChunk(d, memory_manager, virtual_pos, chunk_index, pages_per_chunk, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
 
@@ -53,7 +51,7 @@ PageQueueVL<CHUNK_TYPE>::enqueueChunk(const Desc& d,MemoryManagerType *memory_ma
         memory_order::seq_cst for correctness if strong memory order
         restrictions are needed.
         */
-        sycl::atomic_fence(sycl::memory_order::acq_rel,
+        sycl::atomic_fence(sycl::memory_order::seq_cst,
                            sycl::memory_scope::work_group);
 
         // Since our space is not limited, we can signal at the end
@@ -71,9 +69,7 @@ __dpct_inline__ bool PageQueueVL<CHUNK_TYPE>::enqueueInitialChunk(
 {
 	const auto start_page_index = pages_per_chunk - available_pages;
 
-        unsigned int virtual_pos =
-            dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(
-                &back_, available_pages);
+	unsigned int virtual_pos = atomicAdd(&back_, available_pages);
         back_ptr_->enqueueChunk(memory_manager, virtual_pos, chunk_index, available_pages, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_, start_page_index);
 
 	semaphore.signal(available_pages);
@@ -112,7 +108,7 @@ PageQueueVL<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manag
         memory_order::seq_cst for correctness if strong memory order
         restrictions are needed.
         */
-        sycl::atomic_fence(sycl::memory_order::acq_rel, sycl::memory_scope::device);
+        sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
 
         // unsigned int virtual_pos = atomicAdd(&front_, 1);
 	unsigned int virtual_pos = Ouro::atomicAggInc(&front_);
@@ -137,7 +133,7 @@ PageQueueVL<CHUNK_TYPE>::freePage(const Desc& d,MemoryManagerType *memory_manage
         memory_order::seq_cst for correctness if strong memory order
         restrictions are needed.
         */
-        sycl::atomic_fence(sycl::memory_order::acq_rel,
+        sycl::atomic_fence(sycl::memory_order::seq_cst,
                            sycl::memory_scope::work_group);
 
         semaphore.signal(1);
