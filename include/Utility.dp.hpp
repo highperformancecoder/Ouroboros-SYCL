@@ -156,7 +156,7 @@ namespace Ouro
 #else
   __dpct_inline__ int atomicAggInc(unsigned int *ptr)
   {
-    return ++Ouro::Atomic<unsigned>(*ptr);
+    return Ouro::Atomic<unsigned>(*ptr).fetch_add(1);
   }
 #endif
 

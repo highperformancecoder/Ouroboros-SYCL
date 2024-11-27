@@ -14,7 +14,9 @@ __dpct_inline__ void
 PageQueue<ChunkType>::init(const Desc& d,MemoryManagerType *memory_manager)
 {
   //for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < size_; i += blockDim.x * gridDim.x)
-  for (int i = d.item.get_global_id(0); i < size_; i += d.item.get_global_range(0))
+  auto offs=d.item.get_global_linear_id();
+  auto range=d.item.get_global_range(0);
+  for (int i = offs; i < size_; i += range)
   {
 		queue_[i] = DeletionMarker<index_t>::val;
 	}
@@ -23,7 +25,7 @@ PageQueue<ChunkType>::init(const Desc& d,MemoryManagerType *memory_manager)
 // ##############################################################################################################################################
 //
 template <typename ChunkType>
-__dpct_inline__ bool PageQueue<ChunkType>::enqueue(index_t chunk_index)
+__dpct_inline__ bool PageQueue<ChunkType>::enqueue(const Desc& d,index_t chunk_index)
 {
 	if (semaphore.signal(1) < size_)
 	{
@@ -31,6 +33,7 @@ __dpct_inline__ bool PageQueue<ChunkType>::enqueue(index_t chunk_index)
 		// note: as the filllevel could be increased by this thread, we are certain that the spot will become available
 		// unsigned int pos = Ouro::modPower2<size_>(atomicAdd(&back_, 1));
 		unsigned int pos = Ouro::modPower2<size_>(Ouro::atomicAggInc(&back_));
+                //                d.out<<"PageQueue<ChunkType>::enqueue "<<chunk_index<<" pos "<<pos<<" size_ "<<size_<<sycl::endl;
 		while (atomicCAS(queue_ + pos, DeletionMarker<index_t>::val, chunk_index) != DeletionMarker<index_t>::val)
 			Ouro::sleep();
 		return true;
@@ -147,9 +150,9 @@ PageQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
 template <typename ChunkType>
 template <typename MemoryManagerType>
 __dpct_inline__ void
-PageQueue<ChunkType>::freePage(const Desc&,MemoryManagerType *memory_manager,
+PageQueue<ChunkType>::freePage(const Desc& d,MemoryManagerType *memory_manager,
                                MemoryIndex index)
 {
 	// Enqueue this index into the queue
-	enqueue(index.index);
+  enqueue(d,index.index);
 }

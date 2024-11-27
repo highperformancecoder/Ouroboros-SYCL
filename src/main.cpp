@@ -14,63 +14,59 @@
 template <typename MemoryManagerType>
 void d_testAllocation(const Desc& d, MemoryManagerType* mm, int** verification_ptr, int num_allocations, int allocation_size)
 {
-        int tid = d.item.get_local_id(0) +
-                  d.item.get_group(0) * d.item.get_local_range(0);
-        if(tid >= num_allocations)
-		return;
-
-	verification_ptr[tid] = reinterpret_cast<int*>(mm->malloc(d, allocation_size));
+  int tid=d.item.get_global_linear_id();
+  if(tid >= num_allocations)
+    return;
+  
+  verification_ptr[tid] = reinterpret_cast<int*>(mm->malloc(d, allocation_size));
 }
 
 void d_testWriteToMemory(const Desc& d, int** verification_ptr, int num_allocations, int allocation_size)
 {
-        int tid = d.item.get_local_id(0) +
-                  d.item.get_group(0) * d.item.get_local_range(0);
-        if(tid >= num_allocations)
-		return;
+  int tid = d.item.get_global_linear_id();
+  if(tid >= num_allocations)
+    return;
 	
-	auto ptr = verification_ptr[tid];
+  auto ptr = verification_ptr[tid];
 
-	for(auto i = 0; i < (allocation_size / sizeof(int)); ++i)
-	{
-		ptr[i] = tid;
-	}
+  for(auto i = 0; i < (allocation_size / sizeof(int)); ++i)
+    {
+      ptr[i] = tid;
+    }
 }
 
 void d_testReadFromMemory(const Desc& d, int** verification_ptr, int num_allocations, int allocation_size)
 {
-        int tid = d.item.get_local_id(0) +
-                  d.item.get_group(0) * d.item.get_local_range(0);
-        if(tid >= num_allocations)
-		return;
+  int tid = d.item.get_global_linear_id();
+  if(tid >= num_allocations)
+    return;
 
-        if (d.item.get_local_id(0) == 0 && d.item.get_group(0) == 0)
-                d.out << "Test Read!\n";
+  if (d.item.get_local_id(0) == 0 && d.item.get_group(0) == 0)
+    d.out << "Test Read!\n";
 
-        auto ptr = verification_ptr[tid];
+  auto ptr = verification_ptr[tid];
 
-	for(auto i = 0; i < (allocation_size / sizeof(int)); ++i)
-	{
-		if(ptr[i] != tid)
-		{
-                        /*
-                        DPCT1015:0: Output needs adjustment.
-                        */
-                  d.out << d.item.get_local_id(0)<<" - "<<d.item.get_group(0)<<" | We got a wrong value here! "<<ptr[i]<<" vs "<<tid<<sycl::endl;
-                        return;
-		}
-	}
+  for(auto i = 0; i < (allocation_size / sizeof(int)); ++i)
+    {
+      if(ptr[i] != tid)
+        {
+          /*
+            DPCT1015:0: Output needs adjustment.
+          */
+          d.out << d.item.get_local_id(0)<<" - "<<d.item.get_group(0)<<" | We got a wrong value here! "<<ptr[i]<<" vs "<<tid<<sycl::endl;
+          return;
+        }
+    }
 }
 
 template <typename MemoryManagerType>
 void d_testFree(const Desc& d, MemoryManagerType* mm, int** verification_ptr, int num_allocations)
 {
-        int tid = d.item.get_local_id(0) +
-                  d.item.get_group(0) * d.item.get_local_range(0);
-        if(tid >= num_allocations)
-		return;
-
-	mm->free(d, verification_ptr[tid]);
+  int tid = d.item.get_global_linear_id();
+  if(tid >= num_allocations)
+    return;
+  
+  mm->free(d, verification_ptr[tid]);
 }
 
 int main(int argc, char* argv[])
@@ -81,7 +77,7 @@ int main(int argc, char* argv[])
 	int num_allocations{8192};
 	int allocation_size_byte{16};
 	int num_iterations=10;
-        int blockSize=128;//256;
+        int blockSize=256;
 	if(argc >= 2)
 	{
 		num_allocations = atoi(argv[1]);

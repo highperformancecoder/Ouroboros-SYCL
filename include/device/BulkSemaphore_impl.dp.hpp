@@ -9,10 +9,10 @@
 __dpct_inline__ bool BulkSemaphore::tryReduce(int N)
 {
 	// Reduce by N-1
-  uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
+	uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
 	if((atomic_ret_val - N) < null_value)
 	{
-                dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(&value, N);
+		atomicAdd(&value, N);
                 return false;
 	}
 	return true;
@@ -35,7 +35,7 @@ __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pa
 		if(getCount() - N >= 0)
 		{
 			// Try to decrement global count first
-                  uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
+			uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
 			if((atomic_ret_val - N) >= null_value)
 			{
 				return;
@@ -155,13 +155,11 @@ __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pa
                                 restrictions are needed.
                                 */
                                 sycl::atomic_fence(
-                                    sycl::memory_order::acq_rel,
+                                    sycl::memory_order::seq_cst,
                                     sycl::memory_scope::work_group);
 
                                 // Increment count again
-                                dpct::atomic_fetch_add<
-                                    sycl::access::address_space::generic_space>(
-                                    &value, num);
+				atomicAdd(&value, num);
                         }
 			
 			BulkSemaphore old_semaphore_value;
@@ -195,14 +193,9 @@ __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pa
 
 				new_semaphore_value.createValueInternal(count, expected, reserved);
 				// Try to set new value
-                        } while (
-                            (new_semaphore_value
-                                 .value = dpct::atomic_compare_exchange_strong<
-                                 sycl::access::address_space::generic_space>(
-                                 &value, old_semaphore_value.value,
-                                 new_semaphore_value.value)) !=
-                            old_semaphore_value.value);
-
+                        }
+			while ((new_semaphore_value.value = atomicCAS(&value, old_semaphore_value.value, new_semaphore_value.value))
+			!= old_semaphore_value.value);
                         if (mode == Mode::AllocatePage)
 				break;
 
@@ -232,9 +225,7 @@ __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pa
 
 				// ##############################################
 				// Reduce reserved count
-                                dpct::atomic_fetch_add<
-                                    sycl::access::address_space::generic_space>(
-                                    &value, create64BitSubAdder_reserved(num));
+				atomicAdd(&value, create64BitSubAdder_reserved(num));
                         }
 		}
 	}
@@ -247,21 +238,12 @@ __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pa
 //
 __dpct_inline__ int BulkSemaphore::signalExpected(unsigned long long N)
 {
-        return static_cast<int>(
-                   dpct::atomic_fetch_add<
-                       sycl::access::address_space::generic_space>(
-                       &value, N + create64BitSubAdder_expected(N)) &
-                   highest_value_mask) -
-               null_value;
+	return static_cast<int>(atomicAdd(&value, N + create64BitSubAdder_expected(N)) & highest_value_mask) - null_value;
 }
 
 // ##############################################################################################################################################
 //
 __dpct_inline__ int BulkSemaphore::signal(unsigned long long N)
 {
-        return static_cast<int>(
-                   dpct::atomic_fetch_add<
-                       sycl::access::address_space::generic_space>(&value, N) &
-                   highest_value_mask) -
-               null_value;
+	return static_cast<int>(atomicAdd(&value, N) & highest_value_mask) - null_value;
 }

@@ -6,11 +6,10 @@
 
 // ##############################################################################################################################################
 //
-void printCompute(const sycl::nd_item<3> &item_ct1,
+void printCompute(const sycl::nd_item<1> &item_ct1,
                   const sycl::stream &stream_ct1)
 {
-        int tid = item_ct1.get_local_id(2) +
-                  item_ct1.get_group(2) * item_ct1.get_local_range(2);
+  int tid = item_ct1.get_global_linear_id();
         if(tid >= 1)
 		return;
 #if (DPCT_COMPATIBILITY_TEMP >= 700)
@@ -34,7 +33,7 @@ void d_cleanChunks(MemoryManagerType* memory_manager, unsigned int offset,
                  chunk_data =
                      reinterpret_cast<index_t *>(ChunkType::getMemoryAccess(
                          memory_manager->memory.d_data,
-                         item_ct1.get_group(2) + offset));
+                         item_ct1.get_group(0) + offset));
         }
 
         /*
@@ -42,7 +41,7 @@ void d_cleanChunks(MemoryManagerType* memory_manager, unsigned int offset,
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
-        item_ct1.barrier();
+        sycl::group_barrier(item_ct1.get_group());
 
         for (int i = item_ct1.get_local_id(0);
              i < (MemoryManagerType::ChunkBase::size_ +
@@ -242,6 +241,7 @@ void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, si
         block_size = 256;
 	//cudaOccupancyMaxActiveBlocksPerMultiprocessor(&grid_size, d_initializeOuroborosQueues<MyType>, block_size, 0U);
         grid_size=dev_ct1.get_info<sycl::info::device::max_compute_units>()*dev_ct1.get_info<sycl::info::device::max_work_group_size>()/block_size; // TODO - this is my guess...
+        std::cout<<"initialising with "<<grid_size*block_size<<" "<<block_size<<std::endl;
 //	int num_sm_per_device{0};
 //        num_sm_per_device = dpct::get_device(0).get_max_compute_units();
 //        grid_size *= num_sm_per_device;
@@ -255,6 +255,7 @@ void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, si
         });
 
         HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
+        std::cout<<"after initialisation"<<std::endl;
 
         updateMemoryManagerHost(*this);
 
