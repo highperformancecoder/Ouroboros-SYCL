@@ -13,6 +13,19 @@ namespace Ouro
     sycl::nd_item<1> item;
     sycl::stream out;
   };
+
+  template <class M>
+  class ThreadAllocator
+  {
+    Desc m_desc;
+    M& m;
+  public:
+    ThreadAllocator(const sycl::nd_item<1>& item, const sycl::stream& out, M& m):
+      m_desc(Desc{item,out}), m(m) {}
+    const Desc& desc() const {return m_desc;}
+    void* malloc(size_t sz) {return m.malloc(m_desc,sz);}
+    void free(void* p) {m.free(m_desc,p);}
+  };
   
   __dpct_inline__ unsigned int ldg_cg(const unsigned int *src)
   {

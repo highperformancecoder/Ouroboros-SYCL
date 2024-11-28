@@ -12,13 +12,13 @@
 #define TEST_MULTI
 
 template <typename MemoryManagerType>
-void d_testAllocation(const Desc& d, MemoryManagerType* mm, int** verification_ptr, int num_allocations, int allocation_size)
+void d_testAllocation(Ouro::ThreadAllocator<MemoryManagerType>& mm, int** verification_ptr, int num_allocations, int allocation_size)
 {
-  int tid=d.item.get_global_linear_id();
+  int tid=mm.desc().item.get_global_linear_id();
   if(tid >= num_allocations)
     return;
   
-  verification_ptr[tid] = reinterpret_cast<int*>(mm->malloc(d, allocation_size));
+  verification_ptr[tid] = reinterpret_cast<int*>(mm.malloc(allocation_size));
 }
 
 void d_testWriteToMemory(const Desc& d, int** verification_ptr, int num_allocations, int allocation_size)
@@ -60,13 +60,13 @@ void d_testReadFromMemory(const Desc& d, int** verification_ptr, int num_allocat
 }
 
 template <typename MemoryManagerType>
-void d_testFree(const Desc& d, MemoryManagerType* mm, int** verification_ptr, int num_allocations)
+void d_testFree(Ouro::ThreadAllocator<MemoryManagerType>& mm, int** verification_ptr, int num_allocations)
 {
-  int tid = d.item.get_global_linear_id();
+  int tid = mm.desc().item.get_global_linear_id();
   if(tid >= num_allocations)
     return;
   
-  mm->free(d, verification_ptr[tid]);
+  mm.free(verification_ptr[tid]);
 }
 
 int main(int argc, char* argv[])
@@ -162,8 +162,8 @@ int main(int argc, char* argv[])
           q_ct1.submit([&](auto& h) {
                   sycl::stream out(1000000,1000,h);
                   h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1>& item) {
-                    Desc d{item,out};
-                    d_testAllocation <MemoryManagerType>(d, memory_manager->getDeviceMemoryManager(), d_memory, num_allocations, allocation_size_byte);
+                    Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*memory_manager->getDeviceMemoryManager());
+                    d_testAllocation(m, d_memory, num_allocations, allocation_size_byte);
                   });
                 });
                 q_ct1.wait();
@@ -214,8 +214,8 @@ int main(int argc, char* argv[])
                 q_ct1.submit([&](auto& h) {
                   sycl::stream out(1000000,1000,h);
                   h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1> item) {
-                    Desc d{item,out};
-                    d_testFree <MemoryManagerType>(d,memory_manager->getDeviceMemoryManager(), d_memory, num_allocations);
+                    Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*memory_manager->getDeviceMemoryManager());
+                    d_testFree(m, d_memory, num_allocations);
                   });
                 });
                 q_ct1.wait();
