@@ -140,44 +140,6 @@ void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, si
 	if (initialized)
 		return;
 	
-//	if(!cuda_initialized)
-//	{
-//		cudaDeviceSetLimit(cudaLimitMallocHeapSize, cuda_heap_size);
-//		cuda_initialized = true;
-//	}
-	size_t size;
-        /*
-        DPCT1029:1: SYCL currently does not support getting device resource
-        limits. The output parameter(s) are set to 0.
-        */
-        *&size = 0;
-//        if(printDebug)
-//		printf("Heap Size: ~%llu MB\n", size / (1024 * 1024));
-//
-//	if(printDebug)
-//	{
-//		printf("%s##\n####\n##\n---", break_line_green_s);
-//                dpct::get_in_order_queue().submit([&](sycl::handler &cgh) {
-//                        sycl::stream stream_ct1(64 * 1024, 80, cgh);
-//
-//                        cgh.parallel_for(
-//                            sycl::nd_range<3>(sycl::range<3>(1, 1, 32),
-//                                              sycl::range<3>(1, 1, 32)),
-//                            [=](sycl::nd_item<3> item_ct1) {
-//                                    printCompute(item_ct1, stream_ct1);
-//                            });
-//                });
-//                dev_ct1.queues_wait_and_throw();
-//#ifdef TEST_VIRTUALIZED
-//		printf(" - VIRTUALIZED ARRAY-BASED");
-//#elif TEST_VIRTUALIZED_LINKED
-//		printf(" - VIRTUALIZED LINKED-LIST-BASED");
-//#else
-//		printf(" - STANDARD");
-//#endif
-//		printf("  ---\n##\n####\n##\n%s", break_line_green_e);
-//	}
-
 	// Get total size from all Memory Managers
 	auto total_memory_manager_size = totalMemoryManagerSize();
 
