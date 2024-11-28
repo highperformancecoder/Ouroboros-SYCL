@@ -16,20 +16,20 @@ __dpct_inline__ void
 PageQueueVL<CHUNK_TYPE>::init(const Desc& d,MemoryManagerType *memory_manager)
 {
   if (d.item.get_global_linear_id() == 0)
-        {
-		// Allocate 1 chunk per queue in the beginning
-		index_t chunk_index{0};
-		memory_manager->template allocateChunk<true>(chunk_index);
-		auto queue_chunk = QueueChunkType::initializeChunk(memory_manager->d_data, chunk_index, 0);
+    {
+      // Allocate 1 chunk per queue in the beginning
+      index_t chunk_index{0};
+      memory_manager->template allocateChunk<true>(chunk_index);
+      auto queue_chunk = QueueChunkType::initializeChunk(memory_manager->d_data, chunk_index, 0);
 
-		if(!FINAL_RELEASE && printDebug)
-                  d.out<<"Allocate a new chunk for the queue "<<queue_index_<<" with index: "<<chunk_index<<" : ptr: "<<queue_chunk<<sycl::endl;
+      if(!FINAL_RELEASE && printDebug)
+        d.out<<"Allocate a new chunk for the queue "<<queue_index_<<" with index: "<<chunk_index<<" : ptr: "<<queue_chunk<<sycl::endl;
 		
-		// All pointers point to the same chunk in the beginning
-		front_ptr_ = queue_chunk;
-		back_ptr_ = queue_chunk;
-		old_ptr_ = queue_chunk;
-	}
+      // All pointers point to the same chunk in the beginning
+      front_ptr_ = queue_chunk;
+      back_ptr_ = queue_chunk;
+      old_ptr_ = queue_chunk;
+    }
 }
 
 // ##############################################################################################################################################
@@ -45,18 +45,13 @@ PageQueueVL<CHUNK_TYPE>::enqueueChunk(const Desc& d,MemoryManagerType *memory_ma
 
   back_ptr_->enqueueChunk(d, memory_manager, virtual_pos, chunk_index, pages_per_chunk, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
 
-	// Please DO NOT reorder here
-        /*
-        DPCT1078:0: Consider replacing memory_order::acq_rel with
-        memory_order::seq_cst for correctness if strong memory order
-        restrictions are needed.
-        */
-        sycl::atomic_fence(sycl::memory_order::seq_cst,
-                           sycl::memory_scope::work_group);
+  // Please DO NOT reorder here
+  sycl::atomic_fence(sycl::memory_order::seq_cst,
+                     sycl::memory_scope::work_group);
 
-        // Since our space is not limited, we can signal at the end
-	semaphore.signalExpected(pages_per_chunk);
-	return true;
+  // Since our space is not limited, we can signal at the end
+  semaphore.signalExpected(pages_per_chunk);
+  return true;
 }
 
 // ##############################################################################################################################################
@@ -67,13 +62,13 @@ __dpct_inline__ bool PageQueueVL<CHUNK_TYPE>::enqueueInitialChunk(
     MemoryManagerType *memory_manager, index_t chunk_index, int available_pages,
     index_t pages_per_chunk)
 {
-	const auto start_page_index = pages_per_chunk - available_pages;
+  const auto start_page_index = pages_per_chunk - available_pages;
 
-	unsigned int virtual_pos = atomicAdd(&back_, available_pages);
-        back_ptr_->enqueueChunk(memory_manager, virtual_pos, chunk_index, available_pages, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_, start_page_index);
+  unsigned int virtual_pos = atomicAdd(&back_, available_pages);
+  back_ptr_->enqueueChunk(memory_manager, virtual_pos, chunk_index, available_pages, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_, start_page_index);
 
-	semaphore.signal(available_pages);
-	return true;
+  semaphore.signal(available_pages);
+  return true;
 }
 
 // ##############################################################################################################################################
@@ -83,39 +78,32 @@ template <typename MemoryManagerType>
 __dpct_inline__ void *
 PageQueueVL<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
 {
-	using ChunkType = typename MemoryManagerType::ChunkType;
+  using ChunkType = typename MemoryManagerType::ChunkType;
 
-	MemoryIndex index;
-	uint32_t chunk_index;
-	auto pages_per_chunk = MemoryManagerType::QI::getPagesPerChunkFromQueueIndex(queue_index_);
+  MemoryIndex index;
+  uint32_t chunk_index;
+  auto pages_per_chunk = MemoryManagerType::QI::getPagesPerChunkFromQueueIndex(queue_index_);
 
-	semaphore.wait(d,1, pages_per_chunk, [&]()
-	{
-		if (!memory_manager->template allocateChunk<false>(chunk_index))
-		{
-			if(!FINAL_RELEASE)
-                          d.out<<"TODO: Could not allocate chunk!!!\n";
-		}
+  semaphore.wait(d,1, pages_per_chunk, [&]()
+  {
+    if (!memory_manager->template allocateChunk<false>(chunk_index))
+      {
+        if(!FINAL_RELEASE)
+          d.out<<"TODO: Could not allocate chunk!!!\n";
+      }
 
-	 	ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
-		//__threadfence();
-                sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::device);
-	 	enqueueChunk(d,memory_manager, chunk_index, pages_per_chunk);
-	});
+    ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
+    sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::device);
+    enqueueChunk(d,memory_manager, chunk_index, pages_per_chunk);
+  });
 
-        /*
-        DPCT1078:1: Consider replacing memory_order::acq_rel with
-        memory_order::seq_cst for correctness if strong memory order
-        restrictions are needed.
-        */
-        sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
+  sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
 
-        // unsigned int virtual_pos = atomicAdd(&front_, 1);
-	unsigned int virtual_pos = Ouro::atomicAggInc(&front_);
-	front_ptr_->template dequeue<QueueChunkType::DEQUEUE_MODE::DEQUEUE>(d,memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
+  unsigned int virtual_pos = Ouro::atomicAggInc(&front_);
+  front_ptr_->template dequeue<QueueChunkType::DEQUEUE_MODE::DEQUEUE>(d,memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
 
-	chunk_index = index.getChunkIndex();
-	return ChunkType::getPage(memory_manager->d_data, chunk_index, index.getPageIndex(), page_size_);
+  chunk_index = index.getChunkIndex();
+  return ChunkType::getPage(memory_manager->d_data, chunk_index, index.getPageIndex(), page_size_);
 }
 
 // ##############################################################################################################################################
@@ -128,15 +116,10 @@ PageQueueVL<CHUNK_TYPE>::freePage(const Desc& d,MemoryManagerType *memory_manage
 {
   enqueue(d,memory_manager, index.index);
 
-        /*
-        DPCT1078:2: Consider replacing memory_order::acq_rel with
-        memory_order::seq_cst for correctness if strong memory order
-        restrictions are needed.
-        */
-        sycl::atomic_fence(sycl::memory_order::seq_cst,
-                           sycl::memory_scope::work_group);
+  sycl::atomic_fence(sycl::memory_order::seq_cst,
+                     sycl::memory_scope::work_group);
 
-        semaphore.signal(1);
+  semaphore.signal(1);
 }
 
 // ##############################################################################################################################################
@@ -147,8 +130,8 @@ __dpct_inline__ void
 PageQueueVL<CHUNK_TYPE>::enqueue(const Desc& d,MemoryManagerType *memory_manager,
                                  index_t index)
 {
-	// Increase back and compute the position on a chunk
-	// const unsigned int virtual_pos = atomicAdd(&back_, 1);
-	unsigned int virtual_pos = Ouro::atomicAggInc(&back_);
-	back_ptr_->enqueue(d, memory_manager, virtual_pos, index, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
+  // Increase back and compute the position on a chunk
+  // const unsigned int virtual_pos = atomicAdd(&back_, 1);
+  unsigned int virtual_pos = Ouro::atomicAggInc(&back_);
+  back_ptr_->enqueue(d, memory_manager, virtual_pos, index, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
 }

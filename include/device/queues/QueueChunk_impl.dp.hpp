@@ -18,7 +18,6 @@ __dpct_inline__ void QueueChunk<ChunkBase>::guaranteeWarpSyncPerChunk
 	int work_NOT_done{TRUE};
 
 	// TODO: This seems to work, but it is not a guarantee that this actually works
-	//auto active_mask = __activemask();
         auto sg=d.item.get_sub_group();
 	while(true)
 	{
@@ -326,15 +325,17 @@ QueueChunk<ChunkBase>::enqueueChunk(const Desc& d, MemoryManagerType *memory_man
 				{
 					if(counter++ > (1000*1000*10))
 					{
-//						if(!FINAL_RELEASE)
-//							printf("%d : %d died in traversal in enqueueChunk, chunk_index: %u - ptr: %p\n", threadIdx.x, blockIdx.x, chunk_ptr->chunk_index_, chunk_ptr);
-//						__trap(); //TODO
+                                          if(!FINAL_RELEASE)
+                                            d.out<<d.item.get_local_linear_id()<<" : "<<
+                                              d.item.get_group_linear_id()<<
+                                              " died in traversal in enqueueChunk, chunk_index: "<<
+                                              chunk_ptr->chunk_index_<<" - "<<chunk_ptr<<sycl::endl;
+                                          return;
 					}
 					Ouro::sleep(counter);
 				}
 
 				// Do NOT reorder here
-				//__threadfence_block();
                                 sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::work_group);
 
 				// Continue to next chunk and check there again
@@ -442,7 +443,7 @@ __dpct_inline__ void QueueChunk<ChunkBase>::dequeue(const Desc& d,
 //
 template <typename ChunkBase>
 __dpct_inline__ QueueChunk<ChunkBase> *
-QueueChunk<ChunkBase>::locateQueueChunkForPosition(
+QueueChunk<ChunkBase>::locateQueueChunkForPosition(const Desc& d,
     const unsigned int v_position, const char *message)
 {
 	// Start at current chunk
@@ -458,15 +459,18 @@ QueueChunk<ChunkBase>::locateQueueChunkForPosition(
 		{
 			if(counter++ > (1000*1000*10))
 			{
-//				if(!FINAL_RELEASE)
-//					printf("%d : %d died in LocateQueueChunk in virtual start, coming from %s, chunk_index: %u - ptr: %p\n", threadIdx.x, blockIdx.x, message, chunk_ptr->chunk_index_, chunk_ptr);
-//				__trap();
+                          if(!FINAL_RELEASE)
+                            d.out<<d.item.get_local_linear_id()<<" : "<<
+                              d.item.get_group_linear_id()<<
+                              " died in LocateQueueChunk in virtual start, coming from "
+                                 <<message<<", chunk_index: "<<
+                              chunk_ptr->chunk_index_<<" - ptr: "<<chunk_ptr<<sycl::endl;
+                          return nullptr;
 			}
 			Ouro::sleep(counter);
 		}
 
 		// Do NOT reorder here
-		//__threadfence_block();
                 sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::work_group);
 
 		// Continue to next chunk and check there again
@@ -492,10 +496,10 @@ QueueChunk<ChunkBase>::accessLinked(const unsigned position,
 //
 template <typename ChunkBase>
 __dpct_inline__ QueueChunk<ChunkBase> *
-QueueChunk<ChunkBase>::accessLinked(const unsigned position)
+QueueChunk<ChunkBase>::accessLinked(const Desc& d,const unsigned position)
 {
 	// Traverse to correct chunk and then access queue_ at correct position
-	return locateQueueChunkForPosition(position, "ACCESSLINKED");
+  return locateQueueChunkForPosition(d,position, "ACCESSLINKED");
 }
 
 // ##############################################################################################################################################

@@ -140,9 +140,11 @@ ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(const Desc& d,index_t &page_index)
 	// Error Checking
 	if(!FINAL_RELEASE)
 	{
-          // TODO
-          //printf("We should have gotten a page, but there was nothing for threadId %d and blockId %d - current count : %d - bitmask_index: %d\n", threadIdx.x, blockIdx.x, current_count, bitmask_index);
-          //	__trap(); // TODO - need to return error and exception back to host
+          d.out<<"We should have gotten a page, but there was nothing for threadId "<<
+            d.item.get_local_linear_id()<<" and blockId "<<
+            d.item.get_group_linear_id()<<
+            " - current count : "<<current_count<<
+            " - bitmask_index: "<<bitmask_index<<sycl::endl;
 	}
 	return Mode::ERROR;
 }

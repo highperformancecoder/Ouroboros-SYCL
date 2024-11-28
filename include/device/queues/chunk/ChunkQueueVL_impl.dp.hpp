@@ -105,7 +105,7 @@ ChunkQueueVL<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_mana
 	auto queue_chunk = front_ptr_;
 	while(true)
 	{
-		queue_chunk = queue_chunk->accessLinked(virtual_pos);
+          queue_chunk = queue_chunk->accessLinked(d,virtual_pos);
 
                 /*
                 DPCT1078:2: Consider replacing memory_order::acq_rel with

@@ -32,9 +32,9 @@ struct ChunkQueue
 	static constexpr int lower_fill_level{static_cast<int>(static_cast<float>(size_) * LOWER_FILL_LEVEL_PERCENTAGE)};
 
 	// Methods
-        __dpct_inline__ bool enqueue(index_t chunk_index, ChunkType *chunk);
+  __dpct_inline__ bool enqueue(const Desc&,index_t chunk_index, ChunkType *chunk);
 
-        __dpct_inline__ bool enqueueChunk(index_t chunk_index,
+        __dpct_inline__ bool enqueueChunk(const Desc&,index_t chunk_index,
                                           index_t pages_per_chunk,
                                           ChunkType *chunk);
 

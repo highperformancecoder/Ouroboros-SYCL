@@ -24,7 +24,7 @@ ChunkQueue<ChunkType>::init(const Desc& d,MemoryManagerType *memory_manager)
 // ##############################################################################################################################################
 //
 template <typename ChunkType>
-__dpct_inline__ bool ChunkQueue<ChunkType>::enqueue(index_t chunk_index,
+__dpct_inline__ bool ChunkQueue<ChunkType>::enqueue(const Desc& d,index_t chunk_index,
                                                     ChunkType *chunk)
 {
   int fill = atomicAdd(&count_, 1);
@@ -53,9 +53,8 @@ __dpct_inline__ bool ChunkQueue<ChunkType>::enqueue(index_t chunk_index,
 		return true;
 	}
 
-//	if(!FINAL_RELEASE)
-//		printf("This chunks is most likely lost for now\n");
-//	__trap(); //no space to enqueue -> fail // TODO
+	if(!FINAL_RELEASE)
+          d.out<<"This chunks is most likely lost for now\n";
 	return false;
 }
 
@@ -63,10 +62,10 @@ __dpct_inline__ bool ChunkQueue<ChunkType>::enqueue(index_t chunk_index,
 //
 template <typename ChunkType>
 __dpct_inline__ bool
-ChunkQueue<ChunkType>::enqueueChunk(index_t chunk_index,
+ChunkQueue<ChunkType>::enqueueChunk(const Desc& d,index_t chunk_index,
                                     index_t pages_per_chunk, ChunkType *chunk)
 {
-	const auto retVal = enqueue(chunk_index, chunk);
+  const auto retVal = enqueue(d,chunk_index, chunk);
 	// Please do NOT reorder here
 	//__threadfence_block();
         sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::work_group);
@@ -112,7 +111,7 @@ ChunkQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager
 		 // Please do NOT reorder here
 		//__threadfence_block();
                 sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::work_group);
-                enqueueChunk(chunk_index, pages_per_chunk, chunk);
+                enqueueChunk(d,chunk_index, pages_per_chunk, chunk);
 	});
 
 	auto current_front = Ouro::ldg_cg(&front_);
@@ -129,7 +128,7 @@ ChunkQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager
 			if(mode == ChunkType::ChunkAccessType::Mode::RE_ENQUEUE_CHUNK)
 			{
 				// Pretty special case, but we simply enqueue in the end again
-				enqueue(chunk_index, chunk);
+                          enqueue(d,chunk_index, chunk);
 				break;
 			}
 			if (mode == ChunkType::ChunkAccessType::Mode::DEQUEUE_CHUNK)
@@ -174,7 +173,7 @@ ChunkQueue<ChunkType>::freePage(const Desc& d,MemoryManagerType *memory_manager,
 	if(mode == ChunkType::ChunkAccessType::FreeMode::FIRST_FREE)
 	{
 		// We are the first to free something in this chunk, add it back to the queue
-		enqueue(index.getChunkIndex(), chunk);
+          enqueue(d,index.getChunkIndex(), chunk);
 	}
 	else if(mode == ChunkType::ChunkAccessType::FreeMode::DEQUEUE && Ouro::ldg_cg(&count_) > lower_fill_level)
 	{
@@ -200,19 +199,17 @@ ChunkQueue<ChunkType>::freePage(const Desc& d,MemoryManagerType *memory_manager,
 			}
 			else
 			{
-                          // TODO
-//                          if(!FINAL_RELEASE && printDebug)
-//					printf("Try Flash Chunk did not work!\n");
-				// Flashing did not work, increase semaphore again by all pages
-				semaphore.signal(num_pages_per_chunk);
+                          if(!FINAL_RELEASE && printDebug)
+                            d.out<<"Try Flash Chunk did not work!\n";
+                          // Flashing did not work, increase semaphore again by all pages
+                          semaphore.signal(num_pages_per_chunk);
 			}
 			return;
 		}
 		else
 		{
-                  // TODO
-//			if(!FINAL_RELEASE && printDebug)
-//				printf("Try Reduce did not work for chunk %u!\n", index.getChunkIndex());
+                  if(!FINAL_RELEASE && printDebug)
+                    d.out<<"Try Reduce did not work for chunk "<<index.getChunkIndex()<<sycl::endl;
 		}
 	}
 

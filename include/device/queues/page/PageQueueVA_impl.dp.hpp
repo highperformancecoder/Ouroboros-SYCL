@@ -172,8 +172,8 @@ PageQueueVA<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manag
 	{
 		if (!memory_manager->template allocateChunk<false>(chunk_index))
 		{
-		//	if(!FINAL_RELEASE)
-		//		printf("TODO: Could not allocate chunk!!!\n");
+                  if(!FINAL_RELEASE)
+                    d.out<<"TODO: Could not allocate chunk!!!\n";
 		}
 
 	 	ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
