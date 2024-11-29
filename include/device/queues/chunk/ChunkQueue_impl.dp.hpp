@@ -110,10 +110,10 @@ namespace Ouro
       enqueueChunk(d,chunk_index, pages_per_chunk, chunk);
     });
 
-    auto current_front = Ouro::ldg_cg(&front_);
+    auto current_front = front_;
     while(true)
       {
-        chunk_index = Ouro::ldg_cg(&queue_[Ouro::modPower2<size_>(current_front)]);
+        chunk_index = queue_[Ouro::modPower2<size_>(current_front)];
         if(chunk_index != DeletionMarker<index_t>::val)
           {
             chunk = ChunkType::getAccess(memory_manager->d_data, chunk_index);
@@ -145,7 +145,7 @@ namespace Ouro
         // Error Checking
         if (!FINAL_RELEASE)
           {
-            if (current_front > Ouro::ldg_cg(&back_))
+            if (current_front > back_)
               {
                 d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" - We done fucked up! Front: "<<current_front<<" Back: "<<back_<<" : Count: "<<count_<<sycl::endl;
                 return nullptr;
@@ -171,7 +171,7 @@ namespace Ouro
         // We are the first to free something in this chunk, add it back to the queue
         enqueue(d,index.getChunkIndex(), chunk);
       }
-    else if(mode == ChunkType::ChunkAccessType::FreeMode::DEQUEUE && Ouro::ldg_cg(&count_) > lower_fill_level)
+    else if(mode == ChunkType::ChunkAccessType::FreeMode::DEQUEUE && count_ > lower_fill_level)
       {
         auto num_pages_per_chunk{chunk->access.size};
 

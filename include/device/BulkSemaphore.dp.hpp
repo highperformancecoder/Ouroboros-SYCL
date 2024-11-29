@@ -50,7 +50,7 @@ namespace Ouro
 
     __dpct_inline__ void read(BulkSemaphore &semaphore)
     {
-      semaphore.value = Ouro::ldg_cg(&value);
+      semaphore.value = value;
     }
 
     // ################################################################################################################

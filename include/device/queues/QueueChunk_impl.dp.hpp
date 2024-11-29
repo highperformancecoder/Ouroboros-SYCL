@@ -57,7 +57,7 @@ namespace Ouro
                 unsigned long long next {DeletionMarker<unsigned long long>::val};
                 unsigned int counter{0};
                 // Next might not be set yet, in this case we have to wait
-                while((next = Ouro::ldg_cg(&chunk_ptr->next_)) == DeletionMarker<unsigned long long>::val)
+                while((next = chunk_ptr->next_) == DeletionMarker<unsigned long long>::val)
                   {
                     if(counter++ > (1000*1000*10))
                       {
@@ -141,7 +141,8 @@ namespace Ouro
       MemoryIndex::createIndex(chunk_index, start_index + 2),
       MemoryIndex::createIndex(chunk_index, start_index + 3)
     };
-    Ouro::store(reinterpret_cast<sycl::uint4*>(queue_ + position), indices);
+    
+    reinterpret_cast<sycl::uint4&>(queue_[position])=indices;
     return atomicAdd(&count_, countAddValueEnqueue<4>());
   }
 
@@ -313,7 +314,7 @@ namespace Ouro
               unsigned long long next {DeletionMarker<unsigned long long>::val};
               unsigned int counter{0};
               // Next might not be set yet, in this case we have to wait
-              while((next = Ouro::ldg_cg(&chunk_ptr->next_)) == DeletionMarker<unsigned long long>::val)
+              while((next = chunk_ptr->next_) == DeletionMarker<unsigned long long>::val)
                 {
                   if(counter++ > (1000*1000*10))
                     {
@@ -447,7 +448,7 @@ namespace Ouro
         unsigned long long next {DeletionMarker<unsigned long long>::val};
         unsigned int counter{0};
         // Next might not be set yet, in this case we have to wait
-        while((next = Ouro::ldg_cg(&chunk_ptr->next_)) == DeletionMarker<unsigned long long>::val)
+        while((next = chunk_ptr->next_) == DeletionMarker<unsigned long long>::val)
           {
             if(counter++ > (1000*1000*10))
               {
@@ -481,7 +482,7 @@ namespace Ouro
   {
     // Traverse to correct chunk and then access queue_ at correct position
     QueueChunk<ChunkBase>* current_chunk{locateQueueChunkForPosition(position, "ACCESSLINKED")};
-    element = Ouro::ldg_cg(&(current_chunk->queue_[Ouro::modPower2<num_spots_>(position)]));
+    element = current_chunk->queue_[Ouro::modPower2<num_spots_>(position)];
   }
 
   // ##############################################################################################################################################
@@ -503,7 +504,7 @@ namespace Ouro
     // INFO: setNextPointer is only called, if all spots on this chunk called their enqueue, at which point next_ must have been set already
     QueueChunk<ChunkBase>* chunk_ptr{this};
     // Try to set back pointer with current chunks next pointer, continue in loop if successful!
-    while(atomicCAS((reinterpret_cast<unsigned long long*>(queue_next_ptr)), reinterpret_cast<unsigned long long>(chunk_ptr), Ouro::ldg_cg(&chunk_ptr->next_)) 
+    while(atomicCAS((reinterpret_cast<unsigned long long*>(queue_next_ptr)), reinterpret_cast<unsigned long long>(chunk_ptr), chunk_ptr->next_) 
           == reinterpret_cast<unsigned long long>(chunk_ptr))
       {
         if(!FINAL_RELEASE && printDebug)
@@ -512,13 +513,13 @@ namespace Ouro
             " Moved backpointer from virtual start: "<<chunk_ptr->virtual_start_<<
             " to "<<reinterpret_cast<QueueChunk<ChunkBase>*>(chunk_ptr->next_)->virtual_start_<<sycl::endl;
         // Read the count of the next chunk in line, check if counterA is already full as well
-        auto current_count_A = extractCounterA(Ouro::ldg_cg(&reinterpret_cast<QueueChunk<ChunkBase>*>(chunk_ptr->next_)->count_));
+        auto current_count_A = extractCounterA(reinterpret_cast<QueueChunk<ChunkBase>*>(chunk_ptr->next_)->count_);
         // If counterA is full, we want to try to continue advancing the back pointer, since multiple chunks might be full at the same time
         // In this case we still want to move our pointer over all, if not we can break here
         if(current_count_A == num_spots_)
           {
             // Set pointer to next pointer
-            chunk_ptr = reinterpret_cast<QueueChunk<ChunkBase>*>(Ouro::ldg_cg(&chunk_ptr->next_));
+            chunk_ptr = reinterpret_cast<QueueChunk<ChunkBase>*>(chunk_ptr->next_);
           }
         else
           break;
@@ -535,15 +536,15 @@ namespace Ouro
     QueueChunk<ChunkBase>* chunk_ptr{this};
     unsigned int ret_val{0};
     // Try to set front pointer with current chunks next pointer, continue in loop if successfull
-    while(atomicCAS((reinterpret_cast<unsigned long long*>(queue_front_ptr)), reinterpret_cast<unsigned long long>(chunk_ptr), Ouro::ldg_cg(&chunk_ptr->next_)) 
+    while(atomicCAS((reinterpret_cast<unsigned long long*>(queue_front_ptr)), reinterpret_cast<unsigned long long>(chunk_ptr), chunk_ptr->next_) 
           == reinterpret_cast<unsigned long long>(chunk_ptr))
       {
         ++ret_val;
 
         // We check if the count of the next chunk is equal to num_spots (counterA = num_spots & counterB = 0) -> this chunk is empty as well
-        if(Ouro::ldg_cg(&reinterpret_cast<QueueChunk<ChunkBase>*>(Ouro::ldg_cg(&chunk_ptr->next_))->count_) == static_cast<unsigned long long>(num_spots_))
+        if(reinterpret_cast<QueueChunk<ChunkBase>*>(chunk_ptr->next_)->count_ == static_cast<unsigned long long>(num_spots_))
           {
-            chunk_ptr = reinterpret_cast<QueueChunk<ChunkBase>*>(Ouro::ldg_cg(&chunk_ptr->next_));
+            chunk_ptr = reinterpret_cast<QueueChunk<ChunkBase>*>(chunk_ptr->next_);
           }
         else
           break;
@@ -563,7 +564,7 @@ namespace Ouro
   {
     using ChunkType = typename MemoryManagerType::ChunkType;
     // Read current old count
-    auto current_old_count = Ouro::ldg_cg(old_count);
+    auto current_old_count = *old_count;
 
     // This branch is only taken about "LARGEST_OLD_COUNT_VALUE" times, if old_count is larger we already know how much to free up
     if(current_old_count < LARGEST_OLD_COUNT_VALUE)
@@ -596,7 +597,7 @@ namespace Ouro
     // Free up some old chunks
     if(free_count)
       {
-        QueueChunk<ChunkBase>* current_old_ptr{reinterpret_cast<QueueChunk<ChunkBase>*>(Ouro::ldg_cg(reinterpret_cast<unsigned long long*>(queue_old_ptr)))};
+        QueueChunk<ChunkBase>* current_old_ptr{reinterpret_cast<QueueChunk<ChunkBase>*>(*reinterpret_cast<unsigned long long*>(queue_old_ptr))};
         while(free_count > 0)
           {
             auto current_old_ptr_comp = current_old_ptr;

@@ -281,7 +281,7 @@ namespace Ouro
     index_t queue_chunk_index{0};
     // We may have to wait until the first thread on this chunk has initialized it!
     unsigned int counter{0U};
-    while((queue_chunk_index = Ouro::ldg_cg(&queue_[chunk_id])) == DeletionMarker<index_t>::val) 
+    while((queue_chunk_index = queue_[chunk_id]) == DeletionMarker<index_t>::val) 
       {
         Ouro::sleep(counter++);
       }

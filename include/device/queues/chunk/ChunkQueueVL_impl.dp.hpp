@@ -102,7 +102,7 @@ namespace Ouro
     sycl::atomic_fence(sycl::memory_order::seq_cst,
                        sycl::memory_scope::work_group);
 
-    unsigned int virtual_pos = Ouro::ldg_cg(&front_);
+    unsigned int virtual_pos = front_;
     auto queue_chunk = front_ptr_;
     while(true)
       {
@@ -153,7 +153,7 @@ namespace Ouro
         // Error Checking
         if (!FINAL_RELEASE)
           {
-            if (virtual_pos > Ouro::ldg_cg(&back_))
+            if (virtual_pos > back_)
               {
                 if (!FINAL_RELEASE)
                   d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<

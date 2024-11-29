@@ -50,7 +50,7 @@ namespace Ouro
         int expected, reserved, count;
 		
         // Read from global
-        BulkSemaphore new_semaphore_value{ Ouro::ldg_cg(&value) };
+        BulkSemaphore new_semaphore_value{ value };
         do
           {
             old_semaphore_value = new_semaphore_value;

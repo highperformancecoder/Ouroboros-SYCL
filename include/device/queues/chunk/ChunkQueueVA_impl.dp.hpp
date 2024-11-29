@@ -98,13 +98,13 @@ namespace Ouro
     */
     sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
 
-    unsigned int virtual_pos = Ouro::ldg_cg(&front_);
+    unsigned int virtual_pos = front_;
     while (true)
       {
         auto chunk_id = computeChunkID(virtual_pos);
 
         index_t queue_chunk_index{0};
-        if((queue_chunk_index = Ouro::ldg_cg(&queue_[chunk_id])) == DeletionMarker<index_t>::val) 
+        if((queue_chunk_index = queue_[chunk_id]) == DeletionMarker<index_t>::val) 
           {
             ++virtual_pos;
             continue;
@@ -170,7 +170,7 @@ namespace Ouro
         // Error Checking
         if (!FINAL_RELEASE)
           {
-            if (virtual_pos > Ouro::ldg_cg(&back_))
+            if (virtual_pos > back_)
               {
                 if (!FINAL_RELEASE)
                   d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" - "
@@ -326,7 +326,7 @@ namespace Ouro
     index_t queue_chunk_index{0};
     // We may have to wait until the first thread on this chunk has initialized it!
     unsigned int counter = 0;
-    while((queue_chunk_index = Ouro::ldg_cg(&queue_[chunk_id])) == DeletionMarker<index_t>::val) 
+    while((queue_chunk_index = queue_[chunk_id]) == DeletionMarker<index_t>::val) 
       {
         Ouro::sleep(counter++);
       }

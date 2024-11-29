@@ -140,7 +140,7 @@ namespace Ouro
     __dpct_inline__ void access(const unsigned int position,
                                 QueueDataType &element)
     { 
-      element = Ouro::ldg_cg(&queue_[position]); 
+      element = queue_[position]; 
     }
 
     // ##############################################################################################################################################
@@ -155,7 +155,7 @@ namespace Ouro
     __dpct_inline__ bool checkVirtualStart(const unsigned int v_position)
     { 
       // The division is necessary since v_position is just one position on that chunk, so the division rounds it down automatically
-      return (Ouro::ldg_cg(&virtual_start_) / num_spots_) == (v_position / num_spots_);
+      return (virtual_start_ / num_spots_) == (v_position / num_spots_);
     }
 
     // ##############################################################################################################################################

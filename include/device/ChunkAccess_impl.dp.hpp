@@ -99,7 +99,7 @@ namespace Ouro
         // This way we can still use the build in __ffsll but will still start our search at different 
         // positions
         // Load mask -> shift by offset to the right and then append whatever was shifted out at the top
-        auto current_mask = Ouro::ldg_cg(&availability_mask[(++bitmask_index) % MaximumBitMaskSize_]);
+        auto current_mask = availability_mask[(++bitmask_index) % MaximumBitMaskSize_];
         auto without_lower_part = current_mask >> offset;
         auto final_mask = without_lower_part | (current_mask << (Ouro::sizeofInBits<MaskDataType>() - offset));
         //while((least_significant_bit = /*__ffsll*/(sycl::ctz(final_mask)+1)&sizeof(fina))
