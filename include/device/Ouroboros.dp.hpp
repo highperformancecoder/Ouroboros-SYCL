@@ -363,38 +363,6 @@ namespace Ouro
       return false;
     }
 
-    // Temporary Memory Allocator
-    struct HeapAllocator
-    {
-      HeapAllocator() : d_memory{nullptr} {}
-      HeapAllocator(memory_t* ptr) : d_memory{ptr} {}
-      memory_t* d_memory{nullptr};
-      size_t allocated_size{0};
-
-      template <typename DataType>
-      DataType* getMemoryInBytes(size_t num_Bytes)
-      {
-        d_memory -= num_Bytes;
-        allocated_size += num_Bytes;
-        return reinterpret_cast<DataType*>(d_memory);
-      }
-
-      template <typename DataType>
-      DataType* getMemoryInItems(size_t num_Items)
-      {
-        d_memory -= num_Items * sizeof(DataType);
-        allocated_size += num_Items * sizeof(DataType);
-        return reinterpret_cast<DataType*>(d_memory);
-      }
-    };
-
-    HeapAllocator createHeapAllocator(unsigned int offset_in_bytes = 0)
-    {
-      printf("Not implemented correctly yet!\n");
-      exit(-1);
-      return HeapAllocator(memory.d_data_end);
-    }
-
     static bool cuda_initialized;
   };
   template<class OUROBOROS, class... OUROBOROSES>
