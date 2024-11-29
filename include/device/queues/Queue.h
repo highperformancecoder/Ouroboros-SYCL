@@ -4,23 +4,26 @@
 
 #include "Definitions.h"
 
-class IndexQueue
+namespace Ouro
 {
-public:
-        __dpct_inline__ void init(const Desc&);
+  class IndexQueue
+  {
+  public:
+    __dpct_inline__ void init(const Desc&);
 
-        __dpct_inline__ bool enqueue(index_t i);
+    __dpct_inline__ bool enqueue(index_t i);
 
-        template <int CHUNK_SIZE>
-        __dpct_inline__ bool enqueueClean(index_t i, index_t *chunk_data_ptr);
+    template <int CHUNK_SIZE>
+    __dpct_inline__ bool enqueueClean(index_t i, index_t *chunk_data_ptr);
 
-        __dpct_inline__ int dequeue(index_t &element);
+    __dpct_inline__ int dequeue(index_t &element);
 
-        void resetQueue();
+    void resetQueue();
 
-	index_t* queue_;
-	int count_{ 0 };
-	unsigned int front_{ 0 };
-	unsigned int back_{ 0 };
-	int size_{ 0 };
-};
+    index_t* queue_;
+    int count_{ 0 };
+    unsigned int front_{ 0 };
+    unsigned int back_{ 0 };
+    int size_{ 0 };
+  };
+}

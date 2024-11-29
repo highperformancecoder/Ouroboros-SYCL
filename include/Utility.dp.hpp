@@ -30,52 +30,52 @@ namespace Ouro
   __dpct_inline__ unsigned int ldg_cg(const unsigned int *src)
   {
     return *src;
-//    unsigned int dest{ 0 };
-//#ifdef DPCT_COMPATIBILITY_TEMP
-//    /*
-//      DPCT1053:0: Migration of device assembly code is not supported.
-//    */
-//    // TODO    asm volatile("ld.global.cg.u32 %0, [%1];" : "=r"(dest) : "l"(src));
-//#endif
-//    return dest;
+    //    unsigned int dest{ 0 };
+    //#ifdef DPCT_COMPATIBILITY_TEMP
+    //    /*
+    //      DPCT1053:0: Migration of device assembly code is not supported.
+    //    */
+    //    // TODO    asm volatile("ld.global.cg.u32 %0, [%1];" : "=r"(dest) : "l"(src));
+    //#endif
+    //    return dest;
   }
 
   __dpct_inline__ int ldg_cg(const int *src)
   {
     return *src;
-//    int dest{ 0 };
-//#ifdef DPCT_COMPATIBILITY_TEMP
-//    /*
-//      DPCT1053:1: Migration of device assembly code is not
-//      supported.
-//    */
-//    // TODO asm volatile("ld.global.cg.s32 %0, [%1];" : "=r"(dest) : "l"(src));
-//#endif
-//    return dest;
+    //    int dest{ 0 };
+    //#ifdef DPCT_COMPATIBILITY_TEMP
+    //    /*
+    //      DPCT1053:1: Migration of device assembly code is not
+    //      supported.
+    //    */
+    //    // TODO asm volatile("ld.global.cg.s32 %0, [%1];" : "=r"(dest) : "l"(src));
+    //#endif
+    //    return dest;
   }
 
   __dpct_inline__ unsigned long long ldg_cg(const unsigned long long *src)
   {
     return *src;
-//    unsigned long long dest{0};
-//#ifdef DPCT_COMPATIBILITY_TEMP
-//    /*
-//      DPCT1053:2: Migration of device assembly code is not supported.
-//    */
-//    // TODO    asm volatile("ld.global.cg.u64 %0, [%1];" : "=l"(dest) : "l"(src));
-//#endif
-//    return dest;
+    //    unsigned long long dest{0};
+    //#ifdef DPCT_COMPATIBILITY_TEMP
+    //    /*
+    //      DPCT1053:2: Migration of device assembly code is not supported.
+    //    */
+    //    // TODO    asm volatile("ld.global.cg.u64 %0, [%1];" : "=l"(dest) : "l"(src));
+    //#endif
+    //    return dest;
   }
 
   __dpct_inline__ const unsigned int &stg_cg(unsigned int *dest,
                                              const unsigned int &src)
   {
-//#ifdef DPCT_COMPATIBILITY_TEMP
-//    /*
-//      DPCT1053:3: Migration of device assembly code is not supported.
-//    */
-//    asm volatile("st.global.cg.u32 [%0], %1;" : : "l"(dest), "r"(src));
-//#endif
+    //#ifdef DPCT_COMPATIBILITY_TEMP
+    //    /*
+    //      DPCT1053:3: Migration of device assembly code is not supported.
+    //    */
+    //    asm volatile("st.global.cg.u32 [%0], %1;" : : "l"(dest), "r"(src));
+    //#endif
     *dest=src;
     return src;
   }
@@ -88,15 +88,15 @@ namespace Ouro
   __dpct_inline__ void store(sycl::uint4 *dest, const sycl::uint4 &src)
   {
     *dest=src;
-//#ifdef DPCT_COMPATIBILITY_TEMP
-//    /*
-//      DPCT1053:4: Migration of device assembly code is not supported.
-//    */
-//    asm("st.volatile.v4.u32 [%0], {%1, %2, %3, %4};"
-//        :
-//        : "l"(dest), "r"(src.x()), "r"(src.y()), "r"(src.z()),
-//          "r"(src.w()));
-//#endif
+    //#ifdef DPCT_COMPATIBILITY_TEMP
+    //    /*
+    //      DPCT1053:4: Migration of device assembly code is not supported.
+    //    */
+    //    asm("st.volatile.v4.u32 [%0], {%1, %2, %3, %4};"
+    //        :
+    //        : "l"(dest), "r"(src.x()), "r"(src.y()), "r"(src.z()),
+    //          "r"(src.w()));
+    //#endif
   }
 
   /*
@@ -107,14 +107,14 @@ namespace Ouro
   __dpct_inline__ void store(sycl::uint2 *dest, const sycl::uint2 &src)
   {
     *dest=src;
-//#ifdef DPCT_COMPATIBILITY_TEMP
-//    /*
-//      DPCT1053:5: Migration of device assembly code is not supported.
-//    */
-//    asm("st.volatile.v2.u32 [%0], {%1, %2};"
-//        :
-//        : "l"(dest), "r"(src.x()), "r"(src.y()));
-//#endif
+    //#ifdef DPCT_COMPATIBILITY_TEMP
+    //    /*
+    //      DPCT1053:5: Migration of device assembly code is not supported.
+    //    */
+    //    asm("st.volatile.v2.u32 [%0], {%1, %2};"
+    //        :
+    //        : "l"(dest), "r"(src.x()), "r"(src.y()));
+    //#endif
   }
 
   static __dpct_inline__ int lane_id(const sycl::nd_item<1> &item)
@@ -169,34 +169,34 @@ namespace Ouro
 #else
   __dpct_inline__ int atomicAggInc(unsigned int *ptr)
   {
-    return Ouro::Atomic<unsigned>(*ptr).fetch_add(1);
+    return Atomic<unsigned>(*ptr).fetch_add(1);
   }
 #endif
 
+
+
+  template <class T, class U> T atomicAdd(T* x, U v)
+  {return Atomic<T>(*x).fetch_add(v);}
+
+  template <class T, class U> T atomicSub(T* x, U v)
+  {return Atomic<T>(*x).fetch_sub(v);}
+
+  template <class T, class U> T atomicAnd(T* x, U v)
+  {return Atomic<T>(*x).fetch_and(v);}
+
+  template <class T, class U> T atomicOr(T* x, U v)
+  {return Atomic<T>(*x).fetch_or(v);}
+
+  template <class T, class U> T atomicMax(T* x, U v)
+  {return Atomic<T>(*x).fetch_max(v);}
+
+  template <class T, class U> T atomicExch(T* x, U v)
+  {return Atomic<T>(*x).exchange(v);}
+
+  template <class T> T atomicCAS(T* x, T expected, T desired)
+  {
+    Atomic<T>(*x).compare_exchange_strong(expected,desired);
+    return expected; // value updated to previous value of x by above
+  }
+
 }
-
-template <class T, class U> T atomicAdd(T* x, U v)
-{return Ouro::Atomic<T>(*x).fetch_add(v);}
-
-template <class T, class U> T atomicSub(T* x, U v)
-{return Ouro::Atomic<T>(*x).fetch_sub(v);}
-
-template <class T, class U> T atomicAnd(T* x, U v)
-{return Ouro::Atomic<T>(*x).fetch_and(v);}
-
-template <class T, class U> T atomicOr(T* x, U v)
-{return Ouro::Atomic<T>(*x).fetch_or(v);}
-
-template <class T, class U> T atomicMax(T* x, U v)
-{return Ouro::Atomic<T>(*x).fetch_max(v);}
-
-template <class T, class U> T atomicExch(T* x, U v)
-{return Ouro::Atomic<T>(*x).exchange(v);}
-
-template <class T> T atomicCAS(T* x, T expected, T desired)
-{
-  Ouro::Atomic<T>(*x).compare_exchange_strong(expected,desired);
-  return expected; // value updated to previous value of x by above
-}
-
-using Ouro::Desc;

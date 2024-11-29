@@ -2,7 +2,10 @@
 
 #include <vector>
 
-struct PerfMeasure
+namespace Ouro
 {
-	std::vector<float> measurements_;
-};
+  struct PerfMeasure
+  {
+    std::vector<float> measurements_;
+  };
+}
