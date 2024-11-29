@@ -147,7 +147,7 @@ namespace Ouro
           {
             if (current_front > Ouro::ldg_cg(&back_))
               {
-                d.out<<"ThreadIDx: "<<d.item.get_local_id(0)<<" BlockIdx: "<<d.item.get_group(0)<<" - We done fucked up! Front: "<<current_front<<" Back: "<<back_<<" : Count: "<<count_<<sycl::endl;
+                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" - We done fucked up! Front: "<<current_front<<" Back: "<<back_<<" : Count: "<<count_<<sycl::endl;
                 return nullptr;
               }
           }

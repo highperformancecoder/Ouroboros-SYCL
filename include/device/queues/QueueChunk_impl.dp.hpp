@@ -62,7 +62,7 @@ namespace Ouro
                     if(counter++ > (1000*1000*10))
                       {
                         if(!FINAL_RELEASE)
-                          d.out<<d.item.get_local_id(0)<<" : "<<d.item.get_group(0)<<
+                          d.out<<d.item.get_local_linear_id()<<" : "<<d.item.get_group_linear_id()<<
                             " died in gWS from "<<message<<
                             " index: "<<chunk_ptr->chunk_index_<<
                             " - ptr: "<<chunk_ptr<<sycl::endl;
@@ -101,7 +101,7 @@ namespace Ouro
         if(++counter > (1000*1000*10))
           {
             if (!FINAL_RELEASE)
-              d.out<<d.item.get_local_id(0)<<" - "<<d.item.get_group(0)<<
+              d.out<<d.item.get_local_linear_id()<<" - "<<d.item.get_group_linear_id()<<
                 " | Horrible death in enqueue: Position: " <<
                 position << " - Chunk Index: "<<
                 chunk_index_ << " -> Value: "<<
@@ -233,7 +233,7 @@ namespace Ouro
           memory_manager->template allocateChunk<true>(queue_chunk_index);
 
           if(!FINAL_RELEASE && printDebug)
-            d.out<<"EC - "<<d.item.get_local_id(0)<<" : "<<d.item.get_group(0)<<" Allocate a new chunk for queue with index: "<<queue_chunk_index<<" and virtual pos: "<<((local_position == 0) ? (position + num_spots_) : (position + num_spots_ + (num_spots_ - local_position)))<<sycl::endl;
+            d.out<<"EC - "<<d.item.get_local_linear_id()<<" : "<<d.item.get_group_linear_id()<<" Allocate a new chunk for queue with index: "<<queue_chunk_index<<" and virtual pos: "<<((local_position == 0) ? (position + num_spots_) : (position + num_spots_ + (num_spots_ - local_position)))<<sycl::endl;
 
           index_t next_virtual_start{ (local_position == 0) ? (position + num_spots_) : (position + num_spots_ + (num_spots_ - local_position)) };
           potential_next = initializeChunk(memory_manager->d_data, queue_chunk_index, next_virtual_start);
@@ -372,7 +372,7 @@ namespace Ouro
         if(++counter > (1000*1000*10))
           {
             if (!FINAL_RELEASE)
-              d.out<<d.item.get_local_id(0)<<" - "<<d.item.get_group(0)<<
+              d.out<<d.item.get_local_linear_id()<<" - "<<d.item.get_group_linear_id()<<
                 " | Horrible death in dequeue: Position: " <<
                 position << " - Chunk Index: "<<
                 chunk_index_ << "  - virtual_pos: "<<

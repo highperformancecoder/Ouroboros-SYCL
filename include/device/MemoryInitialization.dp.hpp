@@ -10,17 +10,17 @@ namespace Ouro
   //
   template <typename MemoryManagerType>
   void d_cleanChunks(MemoryManagerType* memory_manager, unsigned int offset,
-                     sycl::nd_item<1> item_ct1)
+                     sycl::nd_item<1> item)
   {
     using ChunkType = typename MemoryManagerType::ChunkBase;
     index_t* chunk_data;
  
-    if (item_ct1.get_local_id(0) == 0)
+    if (item.get_local_linear_id() == 0)
       {
         chunk_data =
           reinterpret_cast<index_t *>(ChunkType::getMemoryAccess(
                                                                  memory_manager->memory.d_data,
-                                                                 item_ct1.get_group(0) + offset));
+                                                                 item.get_group_linear_id() + offset));
       }
 
     /*
@@ -28,12 +28,12 @@ namespace Ouro
       sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
       better performance if there is no access to global memory.
     */
-    sycl::group_barrier(item_ct1.get_group());
+    sycl::group_barrier(item.get_group());
 
-    for (int i = item_ct1.get_local_id(0);
+    for (int i = item.get_local_linear_id();
          i < (MemoryManagerType::ChunkBase::size_ +
               MemoryManagerType::ChunkBase::meta_data_size_);
-         i += item_ct1.get_local_range(0))
+         i += item.get_local_range().size())
       {
         chunk_data[i] = DeletionMarker<index_t>::val;
       }

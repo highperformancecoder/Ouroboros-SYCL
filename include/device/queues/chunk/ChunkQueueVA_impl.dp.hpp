@@ -173,7 +173,7 @@ namespace Ouro
             if (virtual_pos > Ouro::ldg_cg(&back_))
               {
                 if (!FINAL_RELEASE)
-                  d.out<<"ThreadIDx: "<<d.item.get_local_id(0)<<" BlockIdx: "<<d.item.get_group(0)<<" - "
+                  d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" - "
                     "We done fucked up! Front: "<<virtual_pos<<
                     " Back: "<<back_<<" : Count: "<<count_<<sycl::endl;
                 return nullptr;

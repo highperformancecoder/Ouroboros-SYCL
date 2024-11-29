@@ -108,7 +108,7 @@ namespace Ouro
           {
             int count, reserved,expected;
             semaphore.getValues(count, reserved, expected);
-            d.out<<d.item.get_group(0)<<" - "<<d.item.get_local_id(0)<<" - "<<Ouro::lane_id(d.item)<<
+            d.out<<d.item.get_group_linear_id()<<" - "<<d.item.get_local_linear_id()<<" - "<<d.item.get_sub_group().get_local_linear_id()<<
               " We died in PageQueue::dequeue waiting on a value! :( pos: "<<pos<<" | "<<count<<" - "<<
               reserved<<" - "<<expected<<sycl::endl;
             return;

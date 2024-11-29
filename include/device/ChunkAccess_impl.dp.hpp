@@ -76,12 +76,12 @@ namespace Ouro
 
     // Offset in the range of 0-63
     //const int offset = (threadIdx.x + blockIdx.x) % Ouro::sizeofInBits<MaskDataType>();
-    const int offset = (d.item.get_local_id(0) + d.item.get_group(0)) % Ouro::sizeofInBits<MaskDataType>();
+    const int offset = (d.item.get_local_linear_id() + d.item.get_group_linear_id()) % Ouro::sizeofInBits<MaskDataType>();
 
     // TODO: Why is this not faster instead of always using the full mask?
     // int mask = Ouro::divup(size, sizeof(MaskDataType) * BYTE_SIZE);
     //int bitmask_index = threadIdx.x;
-    int bitmask_index = d.item.get_local_id(0);
+    int bitmask_index = d.item.get_local_linear_id();
 
     // There is a reason why this is a while true loop and not just a loop over all MAXIMUM_MITMASK_SIZE entries
     // Imagine we have 2 threads, currently one page in mask 3

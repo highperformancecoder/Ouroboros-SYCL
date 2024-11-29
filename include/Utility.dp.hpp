@@ -117,11 +117,6 @@ namespace Ouro
     //#endif
   }
 
-  static __dpct_inline__ int lane_id(const sycl::nd_item<1> &item)
-  {
-    return item.get_sub_group().get_local_linear_id();
-  }
-
   __dpct_inline__ void sleep(unsigned int factor = 1)
   {
 #ifdef DPCT_COMPATIBILITY_TEMP

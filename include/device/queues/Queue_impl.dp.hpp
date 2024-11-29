@@ -15,10 +15,9 @@ namespace Ouro
 
   __dpct_inline__ void IndexQueue::init(const Desc& d)
   {
-    for (int i = d.item.get_group(0) * d.item.get_local_range(0) +
-           d.item.get_local_id(0);
+    for (int i = d.item.get_global_linear_id();
          i < size_;
-         i += d.item.get_local_range(0) * d.item.get_group_range(0))
+         i += d.item.get_global_range().size())
       {
         queue_[i] = DeletionMarker<index_t>::val;
       }

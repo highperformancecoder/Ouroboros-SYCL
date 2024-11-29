@@ -17,16 +17,14 @@ namespace Ouro
   __dpct_inline__ void
   PageQueueVA<CHUNK_TYPE>::init(const Desc& d,MemoryManagerType *memory_manager)
   {
-    for (int i = d.item.get_group(0) * d.item.get_local_range(0) +
-           d.item.get_local_id(0);
+    for (int i = d.item.get_global_linear_id();
          i < size_;
-         i += d.item.get_local_range(0) * d.item.get_group_range(0))
+         i += d.item.get_global_range().size())
       {
         queue_[i] = DeletionMarker<index_t>::val;
       }
 
-    if ((d.item.get_group(0) * d.item.get_local_range(0) +
-         d.item.get_local_id(0)) == 0)
+  if (d.item.get_global_linear_id() == 0)
       {
         // Allocate 1 chunk per queue in the beginning
         index_t chunk_index{0};

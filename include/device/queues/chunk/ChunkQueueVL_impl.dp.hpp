@@ -18,8 +18,7 @@ namespace Ouro
   __dpct_inline__ void
   ChunkQueueVL<CHUNK_TYPE>::init(const Desc& d, MemoryManagerType *memory_manager)
   {
-    if ((d.item.get_group(0) * d.item.get_local_range(0) +
-         d.item.get_local_id(0)) == 0)
+    if (d.item.get_global_linear_id() == 0)
       {
         // Allocate 1 chunk per queue in the beginning
         index_t chunk_index{0};
@@ -157,7 +156,7 @@ namespace Ouro
             if (virtual_pos > Ouro::ldg_cg(&back_))
               {
                 if (!FINAL_RELEASE)
-                  d.out<<"ThreadIDx: "<<d.item.get_local_id(0)<<" BlockIdx: "<<d.item.get_group(0)<<
+                  d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<
                     " - Front: "<<virtual_pos<<" Back: "<<back_<<
                     " - ChunkIndex: "<<chunk_index<<sycl::endl;
                 assert(0);
