@@ -51,7 +51,7 @@ namespace Ouro
       return semaphore.getCount();
     }
 
-    template <typename MemoryManagerType>
+    template <typename Desc,typename MemoryManagerType>
     __dpct_inline__ void init(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename MemoryManagerType>
@@ -60,17 +60,17 @@ namespace Ouro
                         index_t chunk_index, int available_pages,
                         index_t pages_per_chunk);
 
-    template <typename MemoryManagerType>
+    template <typename Desc,typename MemoryManagerType>
     __dpct_inline__ void *allocPage(const Desc&,MemoryManagerType *memory_manager);
 
-    template <typename MemoryManagerType>
+    template <typename Desc,typename MemoryManagerType>
     __dpct_inline__ void freePage(const Desc&,MemoryManagerType *memory_manager,
                                   MemoryIndex index);
 
-    template <typename MemoryManagerType>
+    template <typename Desc,typename MemoryManagerType>
     __dpct_inline__ void enqueue(const Desc&, MemoryManagerType *memory_manager,
                                  index_t index);
-    template <typename MemoryManagerType>
+    template <typename Desc,typename MemoryManagerType>
     __dpct_inline__ bool enqueueChunk(const Desc&,MemoryManagerType *memory_manager,
                                       index_t chunk_index,
                                       index_t pages_per_chunk);

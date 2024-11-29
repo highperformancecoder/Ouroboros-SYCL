@@ -13,6 +13,7 @@ namespace Ouro
     back_ = 0;
   }
 
+  template <class Desc>
   __dpct_inline__ void IndexQueue::init(const Desc& d)
   {
     for (int i = d.item.get_global_linear_id();

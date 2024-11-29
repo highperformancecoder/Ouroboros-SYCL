@@ -11,6 +11,7 @@ namespace Ouro
     /*!	\brief						Initialize all indices to 0
      *	\return						Void
      *	\param[in]	num_chunks		Number of chunks */
+    template <class Desc>
     __dpct_inline__ void init(const Desc& d, unsigned int num_chunks)
     {
       for (int i = d.item.get_global_linear_id();

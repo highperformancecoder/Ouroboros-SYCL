@@ -21,7 +21,7 @@ void d_testAllocation(Ouro::ThreadAllocator<MemoryManagerType>& mm, int** verifi
   verification_ptr[tid] = reinterpret_cast<int*>(mm.malloc(allocation_size));
 }
 
-void d_testWriteToMemory(const Ouro::Desc& d, int** verification_ptr, int num_allocations, int allocation_size)
+void d_testWriteToMemory(const Ouro::SyclDesc<1,sycl::stream>& d, int** verification_ptr, int num_allocations, int allocation_size)
 {
   int tid = d.item.get_global_linear_id();
   if(tid >= num_allocations)
@@ -35,7 +35,7 @@ void d_testWriteToMemory(const Ouro::Desc& d, int** verification_ptr, int num_al
     }
 }
 
-void d_testReadFromMemory(const Ouro::Desc& d, int** verification_ptr, int num_allocations, int allocation_size)
+void d_testReadFromMemory(const Ouro::SyclDesc<1,sycl::stream>& d, int** verification_ptr, int num_allocations, int allocation_size)
 {
   int tid = d.item.get_global_linear_id();
   if(tid >= num_allocations)
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
         h.parallel_for(
                        sycl::nd_range<1>(num_allocations, blockSize),
                        [=](sycl::nd_item<1> item) {
-                         Ouro::Desc d{item,out};
+                         Ouro::SyclDesc<1,sycl::stream> d{item,out};
                          d_testWriteToMemory(d, d_memory, num_allocations,
                                              allocation_size_byte);
                        });
@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
         h.parallel_for(
                        sycl::nd_range<1>(num_allocations, blockSize),
                        [=](sycl::nd_item<1> item) {
-                         Ouro::Desc d{item,out};
+                         Ouro::SyclDesc<1,sycl::stream> d{item,out};
                          d_testReadFromMemory(d,d_memory,
                                               num_allocations,
                                               allocation_size_byte);

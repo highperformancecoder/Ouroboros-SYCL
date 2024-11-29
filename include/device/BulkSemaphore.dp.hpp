@@ -74,7 +74,7 @@ namespace Ouro
     }
 
     // Try to allocate some resource
-    template <typename T>
+    template <typename Desc,typename T>
     __dpct_inline__ void wait(const Desc&,int N, uint32_t number_pages_on_chunk,
                               T allocationFunction);
   

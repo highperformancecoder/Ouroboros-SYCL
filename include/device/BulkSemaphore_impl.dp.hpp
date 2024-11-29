@@ -22,7 +22,7 @@ namespace Ouro
 
   // ##############################################################################################################################################
   //
-  template <typename T>
+  template <typename Desc,typename T>
   __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pages_on_chunk,
                                            T allocationFunction)
 #if (DPCT_COMPATIBILITY_TEMP < 700)

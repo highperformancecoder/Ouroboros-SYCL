@@ -86,8 +86,10 @@ namespace Ouro
 
     void reinitialize(float overallocation_factor);
 
+    template <class Desc>
     __dpct_inline__ void *allocPage(const Desc& d, size_t size);
 
+    template <class Desc>
     __dpct_inline__ void freePage(const Desc& d, MemoryIndex index);
 
     __dpct_inline__ void initializeQueues();
@@ -182,8 +184,10 @@ namespace Ouro
 
     void reinitialize(float overallocation_factor);
 
+    template <class Desc>
     __dpct_inline__ void *allocPage(const Desc&,size_t size);
 
+    template <class Desc>
     __dpct_inline__ void freePage(const Desc&,MemoryIndex index);
 
     template <bool QUEUECHUNK = false>
@@ -286,10 +290,13 @@ namespace Ouro
 
     void reinitialize(float overallocation_factor);
 
+    template <class Desc>
     __dpct_inline__ void *malloc(const Desc&,size_t size);
 
+    template <class Desc>
     __dpct_inline__ void free(const Desc&,void *ptr);
 
+    template <class Desc>
     __dpct_inline__ void freePageRecursive(const Desc&,unsigned int page_size,
                                            MemoryIndex index);
 
@@ -349,6 +356,7 @@ namespace Ouro
       next_memory_manager.setMemory(memory);
     }
 
+    template <class Desc>
     __dpct_inline__ void initQueues(const Desc&,IndexQueue *d_base_chunk_reuse);
 
     void printFreeResources();
@@ -374,11 +382,13 @@ namespace Ouro
     void init(Memory* memory) {}
     size_t totalMemoryManagerSize() {return 0ULL;}
 
+    template <class Desc>
     __dpct_inline__ void *malloc(const Desc&,size_t size)
     {
       return nullptr;
     }
 
+    template <class Desc>
     __dpct_inline__ void freePageRecursive(const Desc& d,unsigned int page_size,
                                            MemoryIndex index)
     {
@@ -390,6 +400,7 @@ namespace Ouro
     }
 
     __dpct_inline__ void setMemory(Memory *memory) {}
+    template <class Desc>
     __dpct_inline__ void initQueues(const Desc&,IndexQueue *d_base_chunk_reuse) {}
     __dpct_inline__ void d_printResources() {}
     void printFreeResources(){}

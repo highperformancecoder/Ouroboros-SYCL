@@ -9,6 +9,7 @@ namespace Ouro
   class IndexQueue
   {
   public:
+    template <class Desc>
     __dpct_inline__ void init(const Desc&);
 
     __dpct_inline__ bool enqueue(index_t i);

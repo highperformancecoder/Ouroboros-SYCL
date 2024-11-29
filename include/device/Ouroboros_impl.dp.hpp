@@ -19,6 +19,7 @@ namespace Ouro
   //
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
+  template <typename Desc>
   __dpct_inline__ void *OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE,
                                         NUMBER_QUEUES>::allocPage(const Desc& d,size_t size)
   {
@@ -26,7 +27,7 @@ namespace Ouro
       Ouro::Atomic<unsigned>(stats.pageAllocCount)++;
 
     // Allocate from chunks
-    return d_storage_reuse_queue[QI::getQueueIndex(size)].template allocPage<OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>>(d,this);
+    return d_storage_reuse_queue[QI::getQueueIndex(size)].allocPage(d,this);
 
   }
 
@@ -34,6 +35,7 @@ namespace Ouro
   //
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
+  template <typename Desc>
   __dpct_inline__ void
   OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage
   (const Desc& d, MemoryIndex index)
@@ -57,6 +59,7 @@ namespace Ouro
   //
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
+  template <typename Desc>
   __dpct_inline__ void *
   OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::allocPage(const Desc& d, size_t size)
   {
@@ -64,14 +67,14 @@ namespace Ouro
       Ouro::Atomic<unsigned>(stats.pageAllocCount)++;
 
     // Allocate from pages
-    return d_storage_reuse_queue[QI::getQueueIndex(size)].template allocPage<OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>>(d,this);
-
+    return d_storage_reuse_queue[QI::getQueueIndex(size)].allocPage(d,this);
   }
 
   // ##############################################################################################################
   //
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
+  template <typename Desc>
   __dpct_inline__ void
   OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage
   (const Desc& d, MemoryIndex index)
@@ -94,6 +97,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <class OUROBOROS, class... OUROBOROSES>
+  template <typename Desc>
   __dpct_inline__ void *Ouroboros<OUROBOROS, OUROBOROSES...>::malloc(const Desc& d, size_t size)
   {
     if(size <= ConcreteOuroboros::LargestPageSize_)
@@ -106,6 +110,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <class OUROBOROS, class... OUROBOROSES>
+  template <typename Desc>
   __dpct_inline__ void Ouroboros<OUROBOROS, OUROBOROSES...>::free(const Desc& d, void *ptr)
   {
     if(!validOuroborosPointer(ptr))
@@ -125,6 +130,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <class OUROBOROS, class... OUROBOROSES>
+  template <typename Desc>
   __dpct_inline__ void
   Ouroboros<OUROBOROS, OUROBOROSES...>::freePageRecursive(const Desc& d, unsigned int page_size,
                                                           MemoryIndex index)

@@ -8,21 +8,29 @@ namespace Ouro
 {
   template <class T> using Atomic=sycl::atomic_ref<T,sycl::memory_order::relaxed,sycl::memory_scope::device>;
 
-  struct Desc
+  struct DummyStream
   {
-    sycl::nd_item<1> item;
-    sycl::stream out;
+    template <class T>
+    DummyStream& operator<<(T) {return *this;}
+  };
+  
+  template<int Rank=1,class S=DummyStream>
+  struct SyclDesc
+  {
+    sycl::nd_item<Rank> item;
+    S out;
+    SyclDesc(const sycl::nd_item<Rank>& item, const S& out): item(item), out(out) {}
   };
 
   template <class M>
   class ThreadAllocator
   {
-    Desc m_desc;
+    SyclDesc<1,sycl::stream> m_desc;
     M& m;
   public:
     ThreadAllocator(const sycl::nd_item<1>& item, const sycl::stream& out, M& m):
-      m_desc(Desc{item,out}), m(m) {}
-    const Desc& desc() const {return m_desc;}
+      m_desc(item,out), m(m) {}
+    const SyclDesc<1,sycl::stream>& desc() const {return m_desc;}
     void* malloc(size_t sz) {return m.malloc(m_desc,sz);}
     void free(void* p) {m.free(m_desc,p);}
   };

@@ -9,7 +9,7 @@ namespace Ouro
   // ##############################################################################################################################################
   // Is instantiated 3 times for enqueue, enqueueChunk and dequeue
   template <typename ChunkBase>
-  template <typename FUNCTION>
+  template <typename Desc,typename FUNCTION>
   __dpct_inline__ void QueueChunk<ChunkBase>::guaranteeWarpSyncPerChunk
   (const Desc& d,index_t position, const char *message, FUNCTION f)
   {
@@ -87,6 +87,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
+  template <typename Desc>
   __dpct_inline__ unsigned int
   QueueChunk<ChunkBase>::enqueue(const Desc& d,const unsigned int position,
                                  const QueueDataType element)
@@ -117,6 +118,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
+  template <typename Desc>
   __dpct_inline__ unsigned int
   QueueChunk<ChunkBase>::enqueueLinked(const Desc& d,const unsigned int position,
                                        const QueueDataType element)
@@ -130,6 +132,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
+  template <typename Desc>
   __dpct_inline__ unsigned int
   QueueChunk<ChunkBase>::enqueueLinkedv4(const Desc& d,const unsigned int position,
                                          const index_t chunk_index,
@@ -149,7 +152,7 @@ namespace Ouro
   // ##############################################################################################################################################
   // Enqueue a single page/chunk into the queue
   template <typename ChunkBase>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ void QueueChunk<ChunkBase>::enqueue(const Desc& d,
                                                       MemoryManagerType *memory_manager, const unsigned int position,
                                                       const QueueDataType element, QueueChunk<ChunkBase> **queue_next_ptr,
@@ -211,7 +214,7 @@ namespace Ouro
   // ##############################################################################################################################################
   // Enqueue a full chunk into the queue (in this case many pages from a chunk)
   template <typename ChunkBase>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ void
   QueueChunk<ChunkBase>::enqueueChunk(const Desc& d, MemoryManagerType *memory_manager,
                                       unsigned int position, index_t chunk_index,
@@ -360,7 +363,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ bool QueueChunk<ChunkBase>::dequeue(const Desc& d,
                                                       const unsigned int position, QueueDataType &element,
                                                       MemoryManagerType *memory_manager, QueueChunk<ChunkBase> **queue_front_ptr)
@@ -392,6 +395,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
+  template <typename Desc>
   __dpct_inline__ bool
   QueueChunk<ChunkBase>::deleteElement(const Desc& d,const unsigned int position)
   {
@@ -407,7 +411,7 @@ namespace Ouro
   // ##############################################################################################################################################
   // Dequeue a page or chunk index from the queue
   template <typename ChunkBase>
-  template <typename QueueChunk<ChunkBase>::DEQUEUE_MODE Mode,
+  template <typename Desc,typename QueueChunk<ChunkBase>::DEQUEUE_MODE Mode,
             typename MemoryManagerType>
   __dpct_inline__ void QueueChunk<ChunkBase>::dequeue(const Desc& d,
                                                       MemoryManagerType *memory_manager, const unsigned int position,
@@ -435,6 +439,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
+  template <typename Desc>
   __dpct_inline__ QueueChunk<ChunkBase> *
   QueueChunk<ChunkBase>::locateQueueChunkForPosition(const Desc& d,
                                                      const unsigned int v_position, const char *message)
@@ -488,6 +493,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
+  template <typename Desc>
   __dpct_inline__ QueueChunk<ChunkBase> *
   QueueChunk<ChunkBase>::accessLinked(const Desc& d,const unsigned position)
   {
@@ -498,6 +504,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
+  template <typename Desc>
   __dpct_inline__ void
   QueueChunk<ChunkBase>::setBackPointer(const Desc& d,QueueChunk<ChunkBase> **queue_next_ptr)
   {
@@ -557,7 +564,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ void QueueChunk<ChunkBase>::setOldPointer(const Desc& d,
                                                             MemoryManagerType *memory_manager, QueueChunk<ChunkBase> **queue_old_ptr,
                                                             unsigned int *old_count, unsigned int free_count)

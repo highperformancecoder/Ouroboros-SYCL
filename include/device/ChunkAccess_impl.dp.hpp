@@ -9,6 +9,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <size_t SIZE, size_t SMALLEST_PAGE>
+  template <typename Desc>
   __dpct_inline__ typename ChunkAccess<SIZE, SMALLEST_PAGE>::FreeMode
   ChunkAccess<SIZE, SMALLEST_PAGE>::freePage(const Desc&,index_t page_index)
   {
@@ -42,6 +43,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <size_t SIZE, size_t SMALLEST_PAGE>
+  template <typename Desc>
   __dpct_inline__ typename ChunkAccess<SIZE, SMALLEST_PAGE>::Mode
   ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(const Desc& d,index_t &page_index)
   {

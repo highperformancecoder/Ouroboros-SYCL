@@ -12,7 +12,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ void
   ChunkQueue<ChunkType>::init(const Desc& d,MemoryManagerType *memory_manager)
   {
@@ -25,6 +25,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
+  template <typename Desc>
   __dpct_inline__ bool ChunkQueue<ChunkType>::enqueue(const Desc& d,index_t chunk_index,
                                                       ChunkType *chunk)
   {
@@ -57,6 +58,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
+  template <typename Desc>
   __dpct_inline__ bool
   ChunkQueue<ChunkType>::enqueueChunk(const Desc& d,index_t chunk_index,
                                       index_t pages_per_chunk, ChunkType *chunk)
@@ -87,7 +89,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ void *
   ChunkQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
   {
@@ -159,7 +161,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ void
   ChunkQueue<ChunkType>::freePage(const Desc& d,MemoryManagerType *memory_manager,
                                   MemoryIndex index)

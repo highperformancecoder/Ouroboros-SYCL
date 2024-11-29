@@ -11,7 +11,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ void
   PageQueue<ChunkType>::init(const Desc& d,MemoryManagerType *memory_manager)
   {
@@ -27,6 +27,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
+  template <typename Desc>
   __dpct_inline__ bool PageQueue<ChunkType>::enqueue(const Desc& d,index_t chunk_index)
   {
     if (semaphore.signal(1) < size_)
@@ -65,6 +66,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
+  template <typename Desc>
   __dpct_inline__ bool PageQueue<ChunkType>::enqueueChunk(const Desc& d,index_t chunk_index,
                                                           index_t pages_per_chunk)
   {
@@ -92,6 +94,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
+  template <typename Desc>
   __dpct_inline__ void PageQueue<ChunkType>::dequeue(const Desc& d, MemoryIndex &index)
   {
     // Dequeue from queue
@@ -120,7 +123,7 @@ namespace Ouro
   //
 
   template <typename ChunkType>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ void *
   PageQueue<ChunkType>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
   {
@@ -149,7 +152,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkType>
-  template <typename MemoryManagerType>
+  template <typename Desc,typename MemoryManagerType>
   __dpct_inline__ void
   PageQueue<ChunkType>::freePage(const Desc& d,MemoryManagerType *memory_manager,
                                  MemoryIndex index)

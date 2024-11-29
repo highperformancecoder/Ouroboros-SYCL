@@ -86,7 +86,7 @@ namespace Ouro
 
   // ##############################################################################################################################################
   //
-  template <typename OUROBOROS>
+  template <typename Desc,typename OUROBOROS>
   void d_initializeOuroborosQueues(const Desc& d,OUROBOROS* ouroboros)
   {
     // Template-recursive to initialize queues
@@ -98,6 +98,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <class OUROBOROS, class... OUROBOROSES>
+  template <typename Desc>
   __dpct_inline__ void
   Ouroboros<OUROBOROS, OUROBOROSES...>::initQueues(const Desc& d, IndexQueue *d_base_chunk_reuse)
   {
@@ -193,8 +194,8 @@ namespace Ouro
       sycl::stream out(1000000,1000,h);
       h.parallel_for(sycl::nd_range<1>(grid_size, block_size),
                      [=,this](sycl::nd_item<1> item) {
-                       Ouro::Desc d{item,out};
-                       d_initializeOuroborosQueues<MyType>(d,reinterpret_cast<MyType*>(memory.d_memory));
+                       Ouro::SyclDesc<1,sycl::stream> d{item,out};
+                       d_initializeOuroborosQueues(d,reinterpret_cast<MyType*>(memory.d_memory));
                      });
     });
 

@@ -33,14 +33,17 @@ namespace Ouro
     static constexpr int lower_fill_level{static_cast<int>(static_cast<float>(size_) * LOWER_FILL_LEVEL_PERCENTAGE)};
 
     // Methods
+    template <class Desc>
     __dpct_inline__ bool enqueue(const Desc&,index_t chunk_index);
 
+    template <class Desc>
     __dpct_inline__ bool enqueueChunk(const Desc&,index_t chunk_index,
                                       index_t pages_per_chunk);
 
+    template <class Desc>
     __dpct_inline__ void dequeue(const Desc&,MemoryIndex &index);
 
-    template <typename MemoryManagerType>
+    template <typename Desc,typename MemoryManagerType>
     __dpct_inline__ void init(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename MemoryManagerType>
@@ -57,10 +60,10 @@ namespace Ouro
                         index_t chunk_index, int available_pages,
                         index_t pages_per_chunk);
 
-    template <typename MemoryManagerType>
+    template <typename Desc,typename MemoryManagerType>
     __dpct_inline__ void *allocPage(const Desc&,MemoryManagerType *memory_manager);
 
-    template <typename MemoryManagerType>
+    template <typename Desc,typename MemoryManagerType>
     __dpct_inline__ void freePage(const Desc&,MemoryManagerType *memory_manager,
                                   MemoryIndex index);
 
