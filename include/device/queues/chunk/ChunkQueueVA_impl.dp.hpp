@@ -149,30 +149,17 @@ namespace Ouro
                   {
                     // We can remove this chunk
                     index_t reusable_chunk_id = atomicExch(&queue_[Ouro::modPower2<size_>(chunk_id)] , DeletionMarker<index_t>::val);
-                    // if(printDebug)
-                    // 	printf("We can reuse this chunk: %5u at position: %5u with virtual start: %10u | AllocPage-Reuse\n", reusable_chunk_id, virtual_pos, queue_chunk->virtual_start_);
+                    if(printDebug)
+                      d.out<<"We can reuse this chunk: "<<
+                        reusable_chunk_id<<
+                        " at position: "<<virtual_pos<<
+                        " with virtual start: "<<queue_chunk->virtual_start_<<
+                        " | AllocPage-Reuse\n";
                     queue_chunk->cleanChunk();
                     memory_manager->template enqueueChunkForReuse<false>(reusable_chunk_id);
                   }
                 // Reduce count again
                 atomicSub(&count_, 1);
-
-                // if (atomicCAS(&front_, virtual_pos, virtual_pos + 1) == virtual_pos)
-                // {
-                // 	//printf("We can dequeue this chunk %u\n", chunk_id);
-                // 	// Reduce count again
-                // 	atomicSub(&count_, 1);
-
-                // 	// We moved the front pointer
-                // 	if(queue_chunk->deleteElement(Ouro::modPower2<QueueChunkType::num_spots_>(virtual_pos)))
-                // 	{
-                // 		// // We can remove this chunk
-                // 		// index_t reusable_chunk_id = atomicExch(queue_ + chunk_id, DeletionMarker<index_t>::val);
-                // 		// if(!FINAL_RELEASE && printDebug)
-                // 		// 	printf("We can reuse this chunk: %5u at position: %5u with virtual start: %10u | AllocPage-Reuse\n", reusable_chunk_id, chunk_id, queue_chunk->virtual_start_);
-                // 		// memory_manager->template enqueueChunkForReuse<false>(reusable_chunk_id);
-                // 	}
-                // }
                 break;
               }
           }
@@ -243,19 +230,7 @@ namespace Ouro
             // Lets try to flash the chunk
             if(false && chunk->access.tryFlashChunk())
               {
-                // auto queue_chunk = accessQueueElement(memory_manager, index.getChunkIndex(), chunk->queue_pos);
-                // if(queue_chunk->deleteElement(Ouro::modPower2<QueueChunkType::num_spots_>(chunk->queue_pos)))
-                // {
-                // 	// We can remove this chunk
-                // 	index_t reusable_chunk_id = atomicExch(&queue_[Ouro::modPower2<size_>(computeChunkID(chunk->queue_pos))] , DeletionMarker<index_t>::val);
-                // 	// if(printDebug)
-                // 	// 	printf("We can reuse this chunk: %5u at position: %5u with virtual start: %10u | AllocPage-Reuse\n", reusable_chunk_id, virtual_pos, queue_chunk->virtual_start_);
-                // 	queue_chunk->cleanChunk();
-                // 	memory_manager->template enqueueChunkForReuse<false>(reusable_chunk_id);
-                // }
                 chunk->cleanChunk(reinterpret_cast<unsigned int*>(reinterpret_cast<memory_t*>(chunk) + ChunkType::size_));
-                // atomicSub(&count_, 1);
-                // memory_manager->enqueueChunkForReuse<false>(index.getChunkIndex());
                 if(!FINAL_RELEASE && printDebug)
                   d.out<<"Successfull re-use of chunk "<<index.getChunkIndex()<<sycl::endl;;
                 if(statistics_enabled)

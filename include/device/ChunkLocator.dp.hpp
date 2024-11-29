@@ -13,12 +13,9 @@ namespace Ouro
      *	\param[in]	num_chunks		Number of chunks */
     __dpct_inline__ void init(const Desc& d, unsigned int num_chunks)
     {
-      for (int i =
-             d.item.get_group(0) * d.item.get_local_range(0) +
-             d.item.get_local_id(0);
+      for (int i = d.item.get_global_linear_id();
            i < Ouro::divup(num_chunks, num_bits);
-           i +=
-             d.item.get_local_range(0) * d.item.get_group_range(0))
+           i += d.item.get_global_range().size())
         {
           d_chunk_flags[i] = 0;
         }
@@ -39,21 +36,19 @@ namespace Ouro
     __dpct_inline__ unsigned int getChunkIndex(unsigned int chunk_index)
     {
       auto index = chunk_index >> division_factor; // Get index position
-      // printf("%d - %d | Chunk_Index: %u - Index: %u\n", threadIdx.x, blockIdx.x, chunk_index, index);
       auto mask = (1U << (Ouro::modPower2<num_bits>(chunk_index) + 1)) - 1; // Only look at the bits from the index position down so we can use built-ins
       while(true)
         {
           auto local_index = num_bits - sycl::clz(d_chunk_flags[index] & mask); // Find the first bit set from the top down
-          // printf("%d - %d | Local Index: %u\n", threadIdx.x, blockIdx.x, local_index - 1);
           if(local_index)
             return (index << division_factor) + (local_index - 1); // Index is 1-based (0 would mean nothing found)
 
           // Go back, set mask to full
           if(index == 0)
             {
-              //				if(!FINAL_RELEASE)
-              //					printf("Oh no! %u %u\n", mask, chunk_index);
-              assert(0);
+              //if(!FINAL_RELEASE)
+              //  d.out<<"Oh no!"<<mask<<chunk_index<<sycl::endl;
+              assert(false && "getChunkIndex");
             }
           --index;
           mask = 0xFFFFFFFF;

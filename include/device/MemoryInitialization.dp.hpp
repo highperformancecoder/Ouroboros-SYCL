@@ -6,21 +6,6 @@
 
 namespace Ouro
 {
-//  // ##############################################################################################################################################
-//  //
-//  void printCompute(const sycl::nd_item<1> &item_ct1,
-//                    const sycl::stream &stream_ct1)
-//  {
-//    int tid = item_ct1.get_global_linear_id();
-//    if(tid >= 1)
-//      return;
-//#if (DPCT_COMPATIBILITY_TEMP >= 700)
-//    stream_ct1 << "ASYNC - COMPUTE MODE";
-//#else
-//    //			printf("SYNC - COMPUTE MODE");
-//#endif
-//  }
-
   // ##############################################################################################################################################
   //
   template <typename MemoryManagerType>

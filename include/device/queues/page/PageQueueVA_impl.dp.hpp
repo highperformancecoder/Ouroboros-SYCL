@@ -79,24 +79,25 @@ namespace Ouro
         sycl::atomic_fence(sycl::memory_order::acq_rel,
                            sycl::memory_scope::work_group);
 
-        QueueChunkType* queue_chunk{ accessQueueElement(memory_manager, chunk_id, virtual_pos) };
+        QueueChunkType* queue_chunk{ accessQueueElement(d,memory_manager, chunk_id, virtual_pos) };
         for(auto i = 0; i < pages_per_chunk; ++i)
           {
             if(position == 0)
               {
                 // Get new chunk ID
                 chunk_id = computeChunkID(virtual_pos);
-                queue_chunk = accessQueueElement(memory_manager, chunk_id, virtual_pos);
+                queue_chunk = accessQueueElement(d,memory_manager, chunk_id, virtual_pos);
               }
 
             index_t index = MemoryIndex::createIndex(chunk_index, i);
             if(QueueChunkType::checkChunkEmptyEnqueue(queue_chunk->enqueue(d,position, index)))
               {
                 // We can remove this chunk
-                //				index_t reusable_chunk_id = atomicExch(queue_ + chunk_id, DeletionMarker<index_t>::val);
-                index_t reusable_chunk_id = Ouro::Atomic<unsigned>(queue_[chunk_id]).exchange(DeletionMarker<index_t>::val);
-                //				if(!FINAL_RELEASE && printDebug)
-                //					printf("We can reuse this chunk: %5u at position: %5u with virtual start: %10u | ENQUEUEChunk-Reuse\n", reusable_chunk_id, chunk_id, queue_chunk->virtual_start_);
+                index_t reusable_chunk_id = atomicExch(queue_ + chunk_id, DeletionMarker<index_t>::val);
+                if(!FINAL_RELEASE && printDebug)
+                  d.out<<"We can reuse this chunk: "<<reusable_chunk_id<<
+                    " at position: "<<chunk_id<<
+                    " with virtual start: "<<queue_chunk->virtual_start_<<sycl::endl;
                 memory_manager->template enqueueChunkForReuse<true>(reusable_chunk_id);
               }
 
@@ -107,10 +108,10 @@ namespace Ouro
         return true;
       }
 
-    //	if (!FINAL_RELEASE)
-    //		printf("We died in EnqueueChunk\n");
+    if (!FINAL_RELEASE)
+      d.out<<"We died in EnqueueChunk\n";
 
-    assert(0); // no space to enqueue -> fail
+    // no space to enqueue -> fail
     return false;
   }
 
@@ -189,7 +190,7 @@ namespace Ouro
     unsigned int chunk_id = computeChunkID(virtual_pos);
 
     // Get index from queue
-    auto chunk = accessQueueElement(memory_manager, chunk_id, virtual_pos);
+    auto chunk = accessQueueElement(d,memory_manager, chunk_id, virtual_pos);
     auto chunk_empty = chunk->dequeue(d,(virtual_pos % QueueChunkType::num_spots_), index.index, memory_manager, nullptr);
 
     if(chunk_empty)
@@ -197,8 +198,10 @@ namespace Ouro
         // We can remove this chunk
         //index_t reusable_chunk_id = atomicExch(queue_ + chunk_id, DeletionMarker<index_t>::val);
         index_t reusable_chunk_id = Ouro::Atomic<unsigned>(queue_[chunk_id]).exchange(DeletionMarker<index_t>::val);
-        //if(!FINAL_RELEASE && printDebug)
-        //	printf("We can reuse this chunk: %5u at position: %5u with virtual start: %10u | AllocPage-Reuse\n", reusable_chunk_id, chunk_id, chunk->virtual_start_);
+        if(!FINAL_RELEASE && printDebug)
+          d.out<<"We can reuse this chunk: "<<reusable_chunk_id<<
+            " at position: "<<chunk_id<<
+            " with virtual start: "<<chunk->virtual_start_<<" | AllocPage-Reuse\n";
         memory_manager->template enqueueChunkForReuse<true>(reusable_chunk_id);
       }
 
@@ -256,7 +259,7 @@ namespace Ouro
         atomicExch(&queue_[(chunk_id + 1) % size_], chunk_index);
       }
 
-    auto chunk = accessQueueElement(memory_manager, chunk_id, virtual_pos);
+    auto chunk = accessQueueElement(d,memory_manager, chunk_id, virtual_pos);
     if(QueueChunkType::checkChunkEmptyEnqueue(chunk->enqueue(d, position, index)))
       {
         // We can remove this chunk
@@ -273,7 +276,7 @@ namespace Ouro
   template <typename CHUNK_TYPE>
   template <typename MemoryManagerType>
   __dpct_inline__ QueueChunk<typename CHUNK_TYPE::Base> *
-  PageQueueVA<CHUNK_TYPE>::accessQueueElement(MemoryManagerType *memory_manager,
+  PageQueueVA<CHUNK_TYPE>::accessQueueElement(const Desc& d,MemoryManagerType *memory_manager,
                                               index_t chunk_id,
                                               index_t v_position)
   {
@@ -288,9 +291,12 @@ namespace Ouro
     auto queue_chunk = QueueChunkType::getAccess(memory_manager->d_data, queue_chunk_index);
     if(!queue_chunk->checkVirtualStart(v_position))
       {
-        //		if (!FINAL_RELEASE)
-        //			printf("Virtualized does not match for chunk: %u at position: %u with virtual start: %u  ||| v_pos: %u\n", queue_chunk_index, chunk_id, queue_chunk->virtual_start_, v_position);
-        assert(0);
+        if (!FINAL_RELEASE)
+          d.out<<"Virtualized does not match for chunk: "<<queue_chunk_index<<
+            " at position: "<<chunk_id<<
+            " with virtual start: "<<queue_chunk->virtual_start_<<
+            "  ||| v_pos: "<<v_position<<sycl::endl;
+        return nullptr;
       }
 
     return queue_chunk;

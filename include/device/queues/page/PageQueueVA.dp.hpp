@@ -73,7 +73,7 @@ namespace Ouro
 
     template <typename MemoryManagerType>
     __dpct_inline__ QueueChunkType *
-    accessQueueElement(MemoryManagerType *memory_manager, index_t chunk_id,
+    accessQueueElement(const Desc&,MemoryManagerType *memory_manager, index_t chunk_id,
                        index_t v_position);
     template <typename MemoryManagerType>
     __dpct_inline__ void enqueue(const Desc&,MemoryManagerType *memory_manager,

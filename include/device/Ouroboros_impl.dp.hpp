@@ -3,7 +3,6 @@
 #include <dpct/dpct.hpp>
 #include "Ouroboros.dp.hpp"
 #include "device/queues/Queues_impl.dp.hpp"
-#include "device/MemoryQueries.dp.hpp"
 #include "device/queues/chunk/ChunkQueue_impl.dp.hpp"
 
 namespace Ouro
@@ -117,11 +116,9 @@ namespace Ouro
       }
     auto chunk_index = ChunkBase::getIndexFromPointer(memory.d_data, ptr);
     auto revised_chunk_index = memory.chunk_locator.getChunkIndex(chunk_index);
-    // printf("Chunk-Index %u vs Revised: %u\n", chunk_index, revised_chunk_index);
     auto chunk = reinterpret_cast<CommonChunk*>(ConcreteOuroboros::ChunkBase::getMemoryAccess(memory.d_data, revised_chunk_index));
     auto page_size = chunk->page_size;
     unsigned int page_index = (reinterpret_cast<unsigned long long>(ptr) - reinterpret_cast<unsigned long long>(chunk) - ChunkBase::meta_data_size_) / page_size;
-    // printf("%llu - %llu | Chunk-Index: %u | Page-Index: %u\n", reinterpret_cast<unsigned long long>(ptr), reinterpret_cast<unsigned long long>(ptr) - reinterpret_cast<unsigned long long>(memory.d_data), revised_chunk_index, page_index);
     return freePageRecursive(d, page_size, MemoryIndex(revised_chunk_index, page_index));
   }
 

@@ -95,12 +95,6 @@ namespace Ouro
     //while(true)
     while(++iters<100000)
       {
-        // if(++iters >= 10000000)
-        // {
-        // 	printf("%d - %d | On Chunk: %u ---  What the hello with current count received: %u\n", blockIdx.x, threadIdx.x, chunk_id, current_count);
-        // 	__trap();
-        // }
-
         // We want each thread starting at a different position, for this we do a circular shift
         // This way we can still use the build in __ffsll but will still start our search at different 
         // positions

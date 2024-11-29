@@ -39,11 +39,6 @@ namespace Ouro
         while (atomicCAS(queue_ + pos, DeletionMarker<index_t>::val, chunk_index) != DeletionMarker<index_t>::val)
           {
             Ouro::sleep();
-            // Ouro::sleep(++counter);
-            // if(++counter > 1000)
-            // {
-            // 	printf("%d - %d Died in ChunkQueue::enqueue!\n", threadIdx.x, blockIdx.x);
-            // }
           }
 
         //__threadfence_block();
