@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
-SET(CMAKE_CXX_COMPILER,icpx)
+# note - setting the compiler here doesn't appear to work. Run ccmake
+# after cmake, and manually set the compiler name
+set(CMAKE_CXX_COMPILER,icpx)
 add_compile_options(-fsycl)
 add_link_options(-fsycl)
 
@@ -24,10 +26,7 @@ SET(OUROBOROSHEADERS
 	include/Definitions.h
 	include/Utility.h
 	include/Utility.dp.hpp
-	include/PerformanceMeasure.dp.hpp
 	include/Parameters.h
-	include/device/CudaUniquePtr.dp.hpp
-	include/helper/json.h
 	include/device/Helper.dp.hpp
 
 	# Access Primitive
@@ -36,7 +35,6 @@ SET(OUROBOROSHEADERS
 
 	# Memory
 	include/device/MemoryIndex.dp.hpp
-	include/device/MemoryQueries.dp.hpp
 
 	# Chunk Stuff
 	include/device/Chunk.dp.hpp

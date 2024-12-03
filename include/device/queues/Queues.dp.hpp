@@ -1,4 +1,4 @@
-#pragma onec
+#pragma once
 #include "device/queues/chunk/ChunkQueue.dp.hpp"
 #include "device/queues/chunk/ChunkQueueVA.dp.hpp"
 #include "device/queues/chunk/ChunkQueueVL.dp.hpp"

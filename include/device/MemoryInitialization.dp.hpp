@@ -121,7 +121,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template<class OUROBOROS, class... OUROBOROSES>
-  void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, size_t instantiation_size, size_t additionalSizeBeginning, size_t additionalSizeEnd)
+  void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, sycl::usm::alloc kind, size_t instantiation_size, size_t additionalSizeBeginning, size_t additionalSizeEnd)
   {
     dpct::device_ext &dev_ct1 = dpct::get_current_device();
     // Initialize memory, then call initialize on all instances
@@ -144,7 +144,7 @@ namespace Ouro
     // Allocate memory
     if (!memory.d_memory)
       //cudaMalloc(reinterpret_cast<void**>(&memory.d_memory), memory.allocationSize);
-      memory.d_memory=sycl::malloc_device<memory_t>(memory.allocationSize, syclQueue);
+      memory.d_memory=sycl::malloc<memory_t>(memory.allocationSize, syclQueue, kind);
     if (!memory.d_memory)
       {
         std::cout<<"memory allocation failed"<<std::endl;

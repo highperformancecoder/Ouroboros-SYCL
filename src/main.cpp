@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
           
   MemoryManagerType* memory_manager=sycl::malloc_shared<MemoryManagerType>(1, q_ct1);
   new(memory_manager) MemoryManagerType;
-  memory_manager->initialize(q_ct1, instantitation_size);
+  memory_manager->initialize(q_ct1, sycl::usm::alloc::device, instantitation_size);
 
   int** d_memory = sycl::malloc_device<int *>(num_allocations, q_ct1);
 

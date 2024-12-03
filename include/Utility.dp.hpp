@@ -11,7 +11,7 @@ namespace Ouro
   struct DummyStream
   {
     template <class T>
-    DummyStream& operator<<(T) {return *this;}
+    const DummyStream& operator<<(T) const {return *this;}
   };
   
   template<int Rank=1,class S=DummyStream>
@@ -19,7 +19,7 @@ namespace Ouro
   {
     sycl::nd_item<Rank> item;
     S out;
-    SyclDesc(const sycl::nd_item<Rank>& item, const S& out): item(item), out(out) {}
+    SyclDesc(const sycl::nd_item<Rank>& item, const S& out={}): item(item), out(out) {}
   };
 
   template <class M>
