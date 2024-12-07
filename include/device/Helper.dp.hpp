@@ -13,9 +13,9 @@ struct AllocationHelper
         template <typename T> static __dpct_inline__ int getNextPow2Pow(T n)
         {
 		if ((n & (n - 1)) == 0)
-                  return 32 - sycl::clz(n) - 1;
+                  return 8*sizeof(T) - sycl::clz(n) - 1;
 		else
-                  return 32 - sycl::clz(n);
+                  return 8*sizeof(T) - sycl::clz(n);
 	}
 
 	template <typename T, T n>
