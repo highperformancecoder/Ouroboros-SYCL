@@ -87,7 +87,8 @@ int main(int argc, char* argv[])
   num_allocations=(num_allocations/blockSize)*blockSize;
   allocation_size_byte = Ouro::alignment(allocation_size_byte, sizeof(int));
   std::cout << "Number of Allocations: " << num_allocations << " | Allocation Size: " << allocation_size_byte << " | Iterations: " << num_iterations << std::endl;
-
+  std::cout<<"Running on "<<q_ct1.get_device().get_info<sycl::info::device::name>()<<std::endl;
+  
 #ifdef TEST_PAGES
 
 #ifdef TEST_VIRTUALARRAY
