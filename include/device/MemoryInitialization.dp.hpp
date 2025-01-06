@@ -157,8 +157,9 @@ namespace Ouro
     // Put Memory Manager on Device
     updateMemoryManagerDevice(*this);
 
-    syclQueue.single_task([this]() {
-      d_setupMemoryPointers<MyType>(reinterpret_cast<MyType*>(memory.d_memory));
+    auto manager=reinterpret_cast<MyType*>(memory.d_memory);
+    syclQueue.single_task([=]() {
+      d_setupMemoryPointers<MyType>(manager);
     });
 
     HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
@@ -181,8 +182,8 @@ namespace Ouro
     if(totalNumberVirtualQueues())
       {
         // Clean all chunks
-        syclQueue.parallel_for(sycl::nd_range<1>(grid_size, block_size), [this](sycl::nd_item<1> item) {
-          d_cleanChunks<MyType>(reinterpret_cast<MyType*>(memory.d_memory), 0, item);
+        syclQueue.parallel_for(sycl::nd_range<1>(grid_size, block_size), [=](sycl::nd_item<1> item) {
+          d_cleanChunks<MyType>(manager, 0, item);
         });
       }
 
@@ -193,9 +194,9 @@ namespace Ouro
     syclQueue.submit([&](auto& h) {
       sycl::stream out(1000000,1000,h);
       h.parallel_for(sycl::nd_range<1>(grid_size, block_size),
-                     [=,this](sycl::nd_item<1> item) {
+                     [=](sycl::nd_item<1> item) {
                        Ouro::SyclDesc<1,sycl::stream> d{item,out};
-                       d_initializeOuroborosQueues(d,reinterpret_cast<MyType*>(memory.d_memory));
+                       d_initializeOuroborosQueues(d,manager);
                      });
     });
 

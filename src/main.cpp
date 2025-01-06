@@ -143,22 +143,24 @@ int main(int argc, char* argv[])
 
   size_t instantitation_size = /*8192ULL*/512ULL * 1024ULL * 1024ULL;
           
-  MemoryManagerType* memory_manager=sycl::malloc_shared<MemoryManagerType>(1, q_ct1);
-  new(memory_manager) MemoryManagerType;
-  memory_manager->initialize(q_ct1, sycl::usm::alloc::device, instantitation_size);
+  MemoryManagerType memory_manager;
+  std::cout<<"b4 initialize"<<std::endl;
+  memory_manager.initialize(q_ct1, sycl::usm::alloc::device, instantitation_size);
+  std::cout<<"after initialize"<<std::endl;
 
   int** d_memory = sycl::malloc_device<int *>(num_allocations, q_ct1);
 
   float timing_allocation{0.0f};
   float timing_free{0.0f};
   //dpct::event_ptr start, end;
+  auto deviceMemMgr=memory_manager.getDeviceMemoryManager();
   for(auto i = 0; i < num_iterations; ++i)
     {
       auto start=clock();
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
         h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1>& item) {
-          Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*memory_manager->getDeviceMemoryManager());
+          Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*deviceMemMgr);
           d_testAllocation(m, d_memory, num_allocations, allocation_size_byte);
         });
       });
@@ -204,7 +206,7 @@ int main(int argc, char* argv[])
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
         h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1> item) {
-          Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*memory_manager->getDeviceMemoryManager());
+          Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*deviceMemMgr);
           d_testFree(m, d_memory, num_allocations);
         });
       });
