@@ -25,13 +25,15 @@ namespace Ouro
   template <typename Desc,typename T>
   __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pages_on_chunk,
                                            T allocationFunction)
-#if (DPCT_COMPATIBILITY_TEMP < 700)
+  //#if (DPCT_COMPATIBILITY_TEMP < 700)
+#if 1
   {
     enum class Mode
       {
         AllocateChunk, AllocatePage, Reserve, Invalid
       };
     auto mode{ Mode::Invalid };
+    int loop=0;
     while(true)
       {
         if(getCount() - N >= 0)
@@ -80,24 +82,19 @@ namespace Ouro
           } while ((new_semaphore_value.value = atomicCAS(&value, old_semaphore_value.value, new_semaphore_value.value))
                    != old_semaphore_value.value);
 
+        // serialise the allocation function within a subgroup
+        auto sg=d.item.get_sub_group();
+        for (int i=0; i<sg.get_local_linear_range(); ++i)
+          if (i==sg.get_local_linear_id() && mode == Mode::AllocateChunk)
+            allocationFunction();
+
+        //__syncwarp();
+        sycl::group_barrier(sg);
         // ##############################################
         // Return if chunk allocation or page allocation
         if (mode == Mode::AllocatePage)
           return;
 
-        int predicate = (mode == Mode::AllocateChunk) ? 1 : 0;
-        //if (__ballot_sync(__activemask(), predicate))
-        auto sg=d.item.get_sub_group();
-        // TODO - why not any_of?
-        if (sycl::reduce_over_group(sg,predicate<<sg.get_local_linear_id(),sycl::bit_or()))
-          {
-            if(predicate)
-              {
-                allocationFunction();
-              }
-          }
-        //__syncwarp();
-        sycl::group_barrier(sg);
         if(mode == Mode::Reserve)
           {
             // ##############################################
@@ -111,11 +108,25 @@ namespace Ouro
                 // Read from global
                 read(new_semaphore_value);
                 new_semaphore_value.getValues(count, expected, reserved);
+                if (counter>4000)
+                  d.out<<d.item.get_global_linear_id()<<" count="<<count<<" expected="<<expected<<" reserved="<<reserved<<" N="<<N<<" counter="<<counter<<sycl::endl;
+                if (counter>4096)
+                  {
+                    d.out<<"Timed out waiting for resources\n";
+                    break;
+                  }
               } while ((count < N) && (reserved < (count + expected)));
 
             // ##############################################
             // Reduce reserved count
             atomicAdd(&value, create64BitSubAdder_reserved(N));
+          }
+        if (loop>90)
+          d.out<<d.item.get_global_linear_id()<<" mode="<<int(mode)<<" count="<<count<<" loop="<<loop<<sycl::endl;
+        if (loop++>100)
+          {
+            d.out<<"Timed out in allocation loop\n";
+            return;
           }
       }
   }
@@ -132,14 +143,14 @@ namespace Ouro
     DPCT1086:0: __activemask() is migrated to 0xffffffff. You may need to adjust
     the code.
   */
-  int mask = dpct::match_any_over_sub_group(
-                                            item_ct1.get_sub_group(), 0xffffffff, number_pages_on_chunk);
-  int leader = dpct::ffs<int>(mask) - 1; // Select leader
-
-  int leader_mask = __match_any_sync(__activemask(), Ouro::lane_id() == leader);
-  if(Ouro::lane_id() == leader)
+  auto sg=d.item.get_sub_group();
+//  int mask = dpct::match_any_over_sub_group(sg, 0xffffffff, number_pages_on_chunk);
+//  int leader = dpct::ffs<int>(mask) - 1; // Select leader
+//
+//  int leader_mask = __match_any_sync(0xffffffff, Ouro::lane_id() == leader);
+  if(sg.leader())
     {
-      int num = sycl::popcount(mask) * N; // How much should our allocator allocate?
+      int num = sg.get_local_linear_range()*N; // How much should our allocator allocate?
       while(true)
         {
           if(getCount() - static_cast<int>(num) >= 0)
@@ -167,7 +178,7 @@ namespace Ouro
           BulkSemaphore old_semaphore_value;
           int expected, reserved, count;
           // Read from global
-          BulkSemaphore new_semaphore_value{ Ouro::ldg_cg(&value) };
+          BulkSemaphore new_semaphore_value{ Ouro::Atomic<unsigned long long>(value) };
           do
             {
               old_semaphore_value = new_semaphore_value;
@@ -206,7 +217,7 @@ namespace Ouro
               allocationFunction();
             }
           // TODO: Not needed??
-          sycl::group_barrier(item_ct1.get_sub_group());
+          //sycl::group_barrier(sg);
           // __threadfence_block();
 
           if(mode == Mode::Reserve)
@@ -232,7 +243,7 @@ namespace Ouro
         }
     }
   // Gather all threads around -> wait for the leader to finish
-  sycl::group_barrier(item_ct1.get_sub_group());
+  sycl::group_barrier(sg);
 }
 #endif
 

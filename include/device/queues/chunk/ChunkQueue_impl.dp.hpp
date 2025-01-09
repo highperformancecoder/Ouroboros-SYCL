@@ -42,6 +42,7 @@ namespace Ouro
             Ouro::sleep();
           }
 
+        
         //__threadfence_block();
         sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::work_group);
 
@@ -100,11 +101,13 @@ namespace Ouro
     // Try to allocate a chunk
     semaphore.wait(d,1, pages_per_chunk, [&]()
     {
+      d.out<<"Allocating chunk\n";
       if (!memory_manager->template allocateChunk<false>(chunk_index))
         {
           if(!FINAL_RELEASE)
             d.out<<"TODO: Could not allocate chunk!!!\n";
         }
+      d.out<<"initialising empty chunk "<<chunk_index<<sycl::endl;
       chunk = ChunkType::initializeEmptyChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
       // Please do NOT reorder here
       //__threadfence_block();
@@ -125,12 +128,14 @@ namespace Ouro
 
             if(mode == ChunkType::ChunkAccessType::Mode::RE_ENQUEUE_CHUNK)
               {
+                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<"reenquing chunk "<<chunk_index<<"\n";
                 // Pretty special case, but we simply enqueue in the end again
                 enqueue(d,chunk_index, chunk);
                 break;
               }
             if (mode == ChunkType::ChunkAccessType::Mode::DEQUEUE_CHUNK)
               {
+                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" dequeue chunk "<<chunk_index<<"\n";
                 // We moved the front pointer
                 atomicMax(&front_, current_front + 1);
                 atomicExch(&chunk->queue_pos, DeletionMarker<index_t>::val);
@@ -145,13 +150,11 @@ namespace Ouro
 
         // ##############################################################################################################
         // Error Checking
-        if (!FINAL_RELEASE)
+        if (current_front > back_)
           {
-            if (current_front > back_)
-              {
-                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" - We done fucked up! Front: "<<current_front<<" Back: "<<back_<<" : Count: "<<count_<<sycl::endl;
-                return nullptr;
-              }
+            if (!FINAL_RELEASE)
+              d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" - We done fucked up! Front: "<<current_front<<" Back: "<<back_<<" : Count: "<<count_<<sycl::endl;
+            return nullptr;
           }
       }
 	
