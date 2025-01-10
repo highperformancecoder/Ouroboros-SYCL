@@ -8,34 +8,22 @@ namespace Ouro
 {
   // ##############################################################################################################################################
   //
-  template <typename MemoryManagerType>
-  void d_cleanChunks(MemoryManagerType* memory_manager, unsigned int offset,
-                     sycl::nd_item<1> item)
+  template <typename Desc,typename MemoryManagerType>
+  void d_cleanChunks(const Desc& d, MemoryManagerType* memory_manager, unsigned int offset)
   {
     using ChunkType = typename MemoryManagerType::ChunkBase;
-    index_t* chunk_data;
- 
-    if (item.get_local_linear_id() == 0)
-      {
-        chunk_data =
-          reinterpret_cast<index_t *>(ChunkType::getMemoryAccess(
-                                                                 memory_manager->memory.d_data,
-                                                                 item.get_group_linear_id() + offset));
-      }
 
-    /*
-      DPCT1065:0: Consider replacing sycl::nd_item::barrier() with
-      sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
-      better performance if there is no access to global memory.
-    */
-    sycl::group_barrier(item.get_group());
-
-    for (int i = item.get_local_linear_id();
-         i < (MemoryManagerType::ChunkBase::size_ +
-              MemoryManagerType::ChunkBase::meta_data_size_);
-         i += item.get_local_range().size())
+    auto group=d.item.get_group();
+    for (int chunk=group.get_group_linear_id(); chunk<memory_manager->memory.maxChunks;
+         chunk+=group.get_group_linear_range())
       {
-        chunk_data[i] = DeletionMarker<index_t>::val;
+        index_t* chunk_data = reinterpret_cast<index_t *>
+          (ChunkType::getMemoryAccess(memory_manager->memory.d_data, chunk + offset));
+        sycl::group_barrier(group); // TODO - this shouldn't be needed.
+        for (int i = group.get_local_linear_id();
+             i < ChunkType::size()/sizeof(index_t);
+             i += group.get_local_linear_range())
+            chunk_data[i] = DeletionMarker<index_t>::val;
       }
   }
 
@@ -178,19 +166,22 @@ namespace Ouro
     updateMemoryManagerDevice(*this);
 
     int block_size = 256;
-    int grid_size = memory.maxChunks*block_size;
+    int grid_size=dev_ct1.get_info<sycl::info::device::max_compute_units>()*dev_ct1.get_info<sycl::info::device::max_work_group_size>();
     if(totalNumberVirtualQueues())
       {
         // Clean all chunks
-        syclQueue.parallel_for(sycl::nd_range<1>(grid_size, block_size), [=](sycl::nd_item<1> item) {
-          d_cleanChunks<MyType>(manager, 0, item);
+        syclQueue.submit([&](auto& h) {
+          sycl::stream out(10000,1000,h);
+          h.parallel_for(sycl::nd_range<1>(grid_size, block_size),
+                         [=](sycl::nd_item<1> item) {
+                           Ouro::SyclDesc<1,sycl::stream> d{item,out};
+                           d_cleanChunks(d,manager, 0);
+                         });
         });
       }
 
     HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
 
-    block_size = 256;
-    grid_size=dev_ct1.get_info<sycl::info::device::max_compute_units>()*dev_ct1.get_info<sycl::info::device::max_work_group_size>();
     syclQueue.submit([&](auto& h) {
       sycl::stream out(1000000,1000,h);
       h.parallel_for(sycl::nd_range<1>(grid_size, block_size),
