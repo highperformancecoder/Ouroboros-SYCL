@@ -52,7 +52,7 @@ namespace Ouro
       memory_order::seq_cst for correctness if strong memory order
       restrictions are needed.
     */
-    sycl::atomic_fence(sycl::memory_order::acq_rel, sycl::memory_scope::device);
+    sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
 
     semaphore.signalExpected(pages_per_chunk);
     return true;
@@ -87,20 +87,24 @@ namespace Ouro
 
     semaphore.wait(d,1, pages_per_chunk, [&]()
     {
+      d.out<<"allocating empty chunk "<<chunk_index<<sycl::endl;
       if (!memory_manager->template allocateChunk<false>(chunk_index))
         {
           if(!FINAL_RELEASE)
             d.out<<"TODO: Could not allocate chunk!!!\n";
         }
 
+      d.out<<"initialising empty chunk "<<chunk_index<<sycl::endl;
       ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk, pages_per_chunk);
       sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::device);
       enqueueChunk(d,memory_manager, chunk_index, pages_per_chunk);
       sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::device);
     });
 
+    
     sycl::atomic_fence(sycl::memory_order::seq_cst,
                        sycl::memory_scope::work_group);
+    sycl::group_barrier(d.item.get_sub_group());
 
     unsigned int virtual_pos = front_;
     auto queue_chunk = front_ptr_;
@@ -113,7 +117,7 @@ namespace Ouro
           memory_order::seq_cst for correctness if strong memory order
           restrictions are needed.
         */
-        sycl::atomic_fence(sycl::memory_order::acq_rel,
+        sycl::atomic_fence(sycl::memory_order::seq_cst,
                            sycl::memory_scope::work_group);
 
         // This position might be out-dated already
@@ -127,7 +131,8 @@ namespace Ouro
               break;
             if (mode == ChunkType::ChunkAccessType::Mode::RE_ENQUEUE_CHUNK)
               {
-                // Pretty special case, but we simply enqueue in the end again
+                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<"reenquing chunk "<<chunk_index<<"\n";
+                 // Pretty special case, but we simply enqueue in the end again
                 enqueue(d,memory_manager, chunk_index);
                 break;
               }
@@ -138,10 +143,9 @@ namespace Ouro
                 // 	front_ptr_->dequeue<QueueChunkType::DEQUEUE_MODE::DELETE>(memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
                 // }
 
+                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" dequeue chunk "<<chunk_index<<"\n";
                 // TODO: Why does this not work
-                dpct::atomic_fetch_max<
-                  sycl::access::address_space::generic_space>(
-                                                              &front_, virtual_pos + 1);
+                atomicMax(&front_, virtual_pos + 1);
                 front_ptr_->template dequeue<Desc,QueueChunkType::DEQUEUE_MODE::DELETE>(d,memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
                 break;
               }
@@ -159,7 +163,7 @@ namespace Ouro
                   d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<
                     " - Front: "<<virtual_pos<<" Back: "<<back_<<
                     " - ChunkIndex: "<<chunk_index<<sycl::endl;
-                assert(0);
+                return nullptr;
               }
           }
       }
@@ -240,9 +244,7 @@ namespace Ouro
                                     index_t index)
   {
     // Increase back and compute the position on a chunk
-    const unsigned int virtual_pos =
-      dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(
-                                                                         &back_, 1);
+    const unsigned int virtual_pos = atomicAdd(&back_, 1);
     back_ptr_->enqueue(d,memory_manager, virtual_pos, index, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
   }
 }

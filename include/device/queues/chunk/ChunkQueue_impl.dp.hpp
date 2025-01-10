@@ -101,13 +101,11 @@ namespace Ouro
     // Try to allocate a chunk
     semaphore.wait(d,1, pages_per_chunk, [&]()
     {
-      d.out<<"Allocating chunk\n";
       if (!memory_manager->template allocateChunk<false>(chunk_index))
         {
           if(!FINAL_RELEASE)
             d.out<<"TODO: Could not allocate chunk!!!\n";
         }
-      d.out<<"initialising empty chunk "<<chunk_index<<sycl::endl;
       chunk = ChunkType::initializeEmptyChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
       // Please do NOT reorder here
       //__threadfence_block();
@@ -128,14 +126,12 @@ namespace Ouro
 
             if(mode == ChunkType::ChunkAccessType::Mode::RE_ENQUEUE_CHUNK)
               {
-                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<"reenquing chunk "<<chunk_index<<"\n";
-                // Pretty special case, but we simply enqueue in the end again
+               // Pretty special case, but we simply enqueue in the end again
                 enqueue(d,chunk_index, chunk);
                 break;
               }
             if (mode == ChunkType::ChunkAccessType::Mode::DEQUEUE_CHUNK)
               {
-                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" dequeue chunk "<<chunk_index<<"\n";
                 // We moved the front pointer
                 atomicMax(&front_, current_front + 1);
                 atomicExch(&chunk->queue_pos, DeletionMarker<index_t>::val);

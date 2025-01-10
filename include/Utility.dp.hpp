@@ -53,7 +53,8 @@ namespace Ouro
 #endif
   }
 
-#if defined(DPCT_COMPATIBILITY_TEMP) && (DPCT_COMPATIBILITY_TEMP >= 700)
+  //#if defined(DPCT_COMPATIBILITY_TEMP) && (DPCT_COMPATIBILITY_TEMP >= 700)
+#if 0
   __dpct_inline__ int atomicAggInc(unsigned int *ptr,
                                    const sycl::nd_item<3> &item_ct1)
   {

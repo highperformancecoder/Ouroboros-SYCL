@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   std::cout << "Usage: num_allocations allocation_size_in_bytes\n";
   int num_allocations{8192};
   int allocation_size_byte{16};
-  int num_iterations=10;
+  int num_iterations=1;
   int blockSize=256;
   if(argc >= 2)
     {

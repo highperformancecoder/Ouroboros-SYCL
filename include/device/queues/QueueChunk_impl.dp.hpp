@@ -17,71 +17,39 @@ namespace Ouro
     // Otherwise the issue is that, although the new model seems to state otherwise, certain threads can be stalled by others
     // Which might mean that traversal is hindered and the whole model hangs
     QueueChunk<ChunkBase>* chunk_ptr{this};
-    int work_NOT_done{TRUE};
 
     // TODO: This seems to work, but it is not a guarantee that this actually works
     auto sg=d.item.get_sub_group();
     while(true)
       {
-        int predicate = (chunk_ptr->checkVirtualStart(position)) ? work_NOT_done : FALSE;
-        //if (__any_sync(active_mask, predicate))
-        if (any_of_group(sg, predicate))
+        if (chunk_ptr->checkVirtualStart(position))
           {
-            if(predicate)
-              {
-                // Execute function (enqueue | enqueueChunk | dequeue)
-                f(chunk_ptr);
-
-                //__threadfence_block();
-                sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::work_group);
-
-                // Now our work is done
-                work_NOT_done = FALSE;
-              }
+            f(chunk_ptr);
+            break;
           }
 
-        // Guarantee that no currently active threads continues to the traversal before the allocation from before is done
-        //__syncwarp(active_mask);
-        sycl::group_barrier(sg);
-
-        // Is there still someone with work left or not?
-        //if (__any_sync(active_mask, work_NOT_done))
-        if (any_of_group(sg, work_NOT_done))
+        unsigned int counter{0};
+        // Next might not be set yet, in this case we have to wait
+        while(chunk_ptr->next_ == DeletionMarker<unsigned long long>::val)
           {
-            // This is critical for threads within a warp that operate on different queues
-            // Only threads which still have to do their work, hence expect a new chunk to arrive, should try to traverse
-            // The others, which are done, might already be at the last chunk for their queue -> they might hang here!
-            if(work_NOT_done)
+            if(counter++ > (1000*1000*10))
               {
-                // Continue traversal
-                unsigned long long next {DeletionMarker<unsigned long long>::val};
-                unsigned int counter{0};
-                // Next might not be set yet, in this case we have to wait
-                while((next = chunk_ptr->next_) == DeletionMarker<unsigned long long>::val)
-                  {
-                    if(counter++ > (1000*1000*10))
-                      {
-                        if(!FINAL_RELEASE)
-                          d.out<<d.item.get_local_linear_id()<<" : "<<d.item.get_group_linear_id()<<
-                            " died in gWS from "<<message<<
-                            " index: "<<chunk_ptr->chunk_index_<<
-                            " - ptr: "<<chunk_ptr<<sycl::endl;
-                        return;
-                      }
-                    Ouro::sleep(counter);
-                  }
-
-                // Do NOT reorder here
-                //__threadfence_block();
-                sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::work_group);
- 
-                // Continue to next chunk and check there again
-                chunk_ptr = reinterpret_cast<QueueChunk<ChunkBase>*>(next);
+                if(!FINAL_RELEASE)
+                  d.out<<d.item.get_local_linear_id()<<" : "<<d.item.get_group_linear_id()<<
+                    " died in gWS from "<<message<<
+                    " index: "<<chunk_ptr->chunk_index_<<
+                    " - ptr: "<<chunk_ptr<<sycl::endl;
+                break;
               }
+          
+            Ouro::sleep(counter);
           }
-        else
+        
+        if (!chunk_ptr->next_ || chunk_ptr->next_ == DeletionMarker<unsigned long long>::val)
           break;
+        chunk_ptr=reinterpret_cast<QueueChunk<ChunkBase>*>(chunk_ptr->next_);
       }
+     sycl::group_barrier(sg);
   }
 
   // ##############################################################################################################################################
@@ -282,7 +250,7 @@ namespace Ouro
 					
                   // Do NOT reorder here (but since the next call depends on the previous, this would be quite stupid)
                   //__threadfence_block();
-                  sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
+                  sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::work_group);
 
                   chunk_ptr->setOldPointer(d,memory_manager, queue_old_ptr, old_count, how_many_removed);
                 }
@@ -301,7 +269,7 @@ namespace Ouro
                   auto how_many_removed = chunk_ptr->setFrontPointer(queue_front_ptr);
 					
                   // Do NOT reorder here (but since the next call depends on the previous, this would be quite stupid)
-                  sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
+                  sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::work_group);
 
                   chunk_ptr->setOldPointer(d,memory_manager, queue_old_ptr, old_count, how_many_removed);
                 }
@@ -427,7 +395,6 @@ namespace Ouro
           auto how_many_removed = chunk_ptr->setFrontPointer(queue_front_ptr);
 			
           // Do NOT reorder here (but since the next call depends on the previous, this would be quite stupid)
-          //__threadfence_block();
           sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::work_group);
 
           chunk_ptr->setOldPointer(d,memory_manager, queue_old_ptr, old_count, how_many_removed);

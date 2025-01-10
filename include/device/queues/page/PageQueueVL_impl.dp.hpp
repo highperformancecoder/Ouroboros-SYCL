@@ -94,18 +94,21 @@ namespace Ouro
             d.out<<"TODO: Could not allocate chunk!!!\n";
         }
 
+      d.out<<d.item.get_group_linear_id()<<" Initialising chunk "<<chunk_index<<sycl::endl;
       ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk);
       sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::device);
       enqueueChunk(d,memory_manager, chunk_index, pages_per_chunk);
     });
 
     sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
-
+    sycl::group_barrier(d.item.get_sub_group());
+    
     unsigned int virtual_pos = Ouro::atomicAggInc(&front_);
     front_ptr_->template dequeue<Desc,QueueChunkType::DEQUEUE_MODE::DEQUEUE>
       (d,memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
 
     chunk_index = index.getChunkIndex();
+    d.out<<d.item.get_group_linear_id()<<":"<<d.item.get_local_linear_id()<<" returning chunk "<<chunk_index<<" page "<<index.getPageIndex()<<sycl::endl;
     return ChunkType::getPage(memory_manager->d_data, chunk_index, index.getPageIndex(), page_size_);
   }
 
