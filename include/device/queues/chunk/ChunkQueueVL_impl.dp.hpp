@@ -87,14 +87,12 @@ namespace Ouro
 
     semaphore.wait(d,1, pages_per_chunk, [&]()
     {
-      d.out<<"allocating empty chunk "<<chunk_index<<sycl::endl;
       if (!memory_manager->template allocateChunk<false>(chunk_index))
         {
           if(!FINAL_RELEASE)
             d.out<<"TODO: Could not allocate chunk!!!\n";
         }
 
-      d.out<<"initialising empty chunk "<<chunk_index<<sycl::endl;
       ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk, pages_per_chunk);
       sycl::atomic_fence(sycl::memory_order::seq_cst,sycl::memory_scope::device);
       enqueueChunk(d,memory_manager, chunk_index, pages_per_chunk);
@@ -131,7 +129,6 @@ namespace Ouro
               break;
             if (mode == ChunkType::ChunkAccessType::Mode::RE_ENQUEUE_CHUNK)
               {
-                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<"reenquing chunk "<<chunk_index<<"\n";
                  // Pretty special case, but we simply enqueue in the end again
                 enqueue(d,memory_manager, chunk_index);
                 break;
@@ -143,7 +140,6 @@ namespace Ouro
                 // 	front_ptr_->dequeue<QueueChunkType::DEQUEUE_MODE::DELETE>(memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
                 // }
 
-                d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" dequeue chunk "<<chunk_index<<"\n";
                 // TODO: Why does this not work
                 atomicMax(&front_, virtual_pos + 1);
                 front_ptr_->template dequeue<Desc,QueueChunkType::DEQUEUE_MODE::DELETE>(d,memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);

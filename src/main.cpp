@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   std::cout << "Usage: num_allocations allocation_size_in_bytes\n";
   int num_allocations{8192};
   int allocation_size_byte{16};
-  int num_iterations=1;
+  int num_iterations=10;
   int blockSize=256;
   if(argc >= 2)
     {
@@ -144,9 +144,7 @@ int main(int argc, char* argv[])
   size_t instantitation_size = /*8192ULL*/512ULL * 1024ULL * 1024ULL;
           
   MemoryManagerType memory_manager;
-  std::cout<<"b4 initialize"<<std::endl;
   memory_manager.initialize(q_ct1, sycl::usm::alloc::device, instantitation_size);
-  std::cout<<"after initialize"<<std::endl;
 
   int** d_memory = sycl::malloc_device<int *>(num_allocations, q_ct1);
 

@@ -2,7 +2,7 @@
 
 namespace Ouro
 {
-  static constexpr bool FINAL_RELEASE=false;
+  static constexpr bool FINAL_RELEASE=true;
 
   // General Params
   static constexpr unsigned int SLEEP_TIME{ 10 };

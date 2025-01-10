@@ -53,41 +53,10 @@ namespace Ouro
 #endif
   }
 
-  //#if defined(DPCT_COMPATIBILITY_TEMP) && (DPCT_COMPATIBILITY_TEMP >= 700)
-#if 0
-  __dpct_inline__ int atomicAggInc(unsigned int *ptr,
-                                   const sycl::nd_item<3> &item_ct1)
-  {
-    /*
-      DPCT1086:6: __activemask() is migrated to 0xffffffff. You may
-      need to adjust the code.
-    */
-    int mask = dpct::match_any_over_sub_group(
-                                              item_ct1.get_sub_group(), 0xffffffff,
-                                              reinterpret_cast<unsigned long long>(ptr));
-    int leader = dpct::ffs<int>(mask) - 1;
-    int res = 0;
-    if (lane_id(item_ct1) == leader)
-      res = dpct::atomic_fetch_add<
-        sycl::access::address_space::generic_space>(
-                                                    ptr, sycl::popcount(mask));
-    /*
-      DPCT1023:7: The SYCL sub-group does not support mask options for
-      dpct::select_from_sub_group. You can specify
-      "--use-experimental-features=masked-sub-group-operation" to use
-      the experimental helper function to migrate __shfl_sync.
-    */
-    res = dpct::select_from_sub_group(item_ct1.get_sub_group(), res, leader);
-    return res + sycl::popcount(mask & ((1 << lane_id(item_ct1)) - 1));
-  }
-#else
   __dpct_inline__ int atomicAggInc(unsigned int *ptr)
   {
     return Atomic<unsigned>(*ptr).fetch_add(1);
   }
-#endif
-
-
 
   template <class T, class U> T atomicAdd(T* x, U v)
   {return Atomic<T>(*x).fetch_add(v);}
