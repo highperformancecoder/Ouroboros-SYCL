@@ -110,13 +110,8 @@ namespace Ouro
       {
         queue_chunk = queue_chunk->accessLinked(d,virtual_pos);
 
-        /*
-          DPCT1078:2: Consider replacing memory_order::acq_rel with
-          memory_order::seq_cst for correctness if strong memory order
-          restrictions are needed.
-        */
         sycl::atomic_fence(sycl::memory_order::seq_cst,
-                           sycl::memory_scope::device);
+                           sycl::memory_scope::work_group);
 
         // This position might be out-dated already
         queue_chunk->access(Ouro::modPower2<QueueChunkType::num_spots_>(virtual_pos), chunk_index);
@@ -151,18 +146,15 @@ namespace Ouro
         ++virtual_pos;
         // ##############################################################################################################
         // Error Checking
-        if (!FINAL_RELEASE)
+        if (virtual_pos > back_)
           {
-            if (virtual_pos > back_)
-              {
-                if (!FINAL_RELEASE)
-                  d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<
-                    " - Front: "<<virtual_pos<<" Back: "<<back_<<
-                    " - ChunkIndex: "<<chunk_index<<sycl::endl;
-                // if this code is removed, then vl_main_c crashes on NVidia. Why?
-                sycl::ext::oneapi::experimental::printf("virtual_pos > back_\n");
-                return nullptr;
-              }
+            if (!FINAL_RELEASE)
+              d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<
+                " - Front: "<<virtual_pos<<" Back: "<<back_<<
+                " - ChunkIndex: "<<chunk_index<<sycl::endl;
+            // if this code is removed, then vl_main_c crashes on NVidia. Why?
+            //sycl::ext::oneapi::experimental::printf("virtual_pos > back_\n");
+            return nullptr;
           }
       }
 
@@ -226,7 +218,7 @@ namespace Ouro
       memory_order::seq_cst for correctness if strong memory order
       restrictions are needed.
     */
-    sycl::atomic_fence(sycl::memory_order::acq_rel,
+    sycl::atomic_fence(sycl::memory_order::seq_cst,
                        sycl::memory_scope::work_group);
 
     // Signal a free page

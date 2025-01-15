@@ -12,7 +12,7 @@ for numAllocations in 256 512 1024 2048 4096 8192; do
                 grep "Timing       Free" log|cut -c20-27|tr -d '\nms'
                 echo ""
             else
-                echo "aborted"
+                echo "NaN,NaN"
             fi
             sleep 1
         done

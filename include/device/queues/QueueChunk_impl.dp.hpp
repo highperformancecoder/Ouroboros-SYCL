@@ -48,7 +48,7 @@ namespace Ouro
           break;
         chunk_ptr=reinterpret_cast<QueueChunk<ChunkBase>*>(chunk_ptr->next_);
       }
-    //sycl::group_barrier(sg);
+    sycl::group_barrier(sg);
   }
 
   // ##############################################################################################################################################

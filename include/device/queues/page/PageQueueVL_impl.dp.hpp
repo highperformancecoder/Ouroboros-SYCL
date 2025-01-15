@@ -92,7 +92,6 @@ namespace Ouro
         {
           if(!FINAL_RELEASE)
             d.out<<"TODO: Could not allocate chunk!!!\n";
-          return nullptr;
         }
 
       ChunkType::initializeChunk(memory_manager->d_data, chunk_index, pages_per_chunk);

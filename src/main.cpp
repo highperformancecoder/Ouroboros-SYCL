@@ -28,7 +28,7 @@ void d_testWriteToMemory(const Ouro::SyclDesc<1,sycl::stream>& d, int** verifica
 	
   auto ptr = verification_ptr[tid];
 
-  for(auto i = 0; i < (allocation_size / sizeof(int)); ++i)
+  for(auto i = 0; ptr&&i < (allocation_size / sizeof(int)); ++i)
     {
       ptr[i] = tid;
     }
@@ -45,7 +45,7 @@ void d_testReadFromMemory(const Ouro::SyclDesc<1,sycl::stream>& d, int** verific
 
   auto ptr = verification_ptr[tid];
 
-  for(auto i = 0; i < (allocation_size / sizeof(int)); ++i)
+  for(auto i = 0; ptr&&i < (allocation_size / sizeof(int)); ++i)
     {
       if(ptr[i] != tid)
         {
