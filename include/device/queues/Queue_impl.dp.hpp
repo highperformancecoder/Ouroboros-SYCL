@@ -1,12 +1,11 @@
 #pragma once
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "Queue.h"
 #include "Utility.dp.hpp"
 
 namespace Ouro
 {
-  __dpct_inline__ void IndexQueue::resetQueue()
+  inline void IndexQueue::resetQueue()
   {
     count_ = 0;
     front_ = 0;
@@ -14,7 +13,7 @@ namespace Ouro
   }
 
   template <class Desc>
-  __dpct_inline__ void IndexQueue::init(const Desc& d)
+  inline void IndexQueue::init(const Desc& d)
   {
     for (int i = d.item.get_global_linear_id();
          i < size_;
@@ -24,7 +23,7 @@ namespace Ouro
       }
   }
 
-  __dpct_inline__ bool IndexQueue::enqueue(index_t i)
+  inline bool IndexQueue::enqueue(index_t i)
   {
     int fill = atomicAdd(&count_, 1);
     if (fill < static_cast<int>(size_))
@@ -45,7 +44,7 @@ namespace Ouro
   }
 
   template <int CHUNK_SIZE>
-  __dpct_inline__ bool IndexQueue::enqueueClean(index_t i,
+  inline bool IndexQueue::enqueueClean(index_t i,
                                                 index_t *chunk_data_ptr)
   {
     for(auto i = 0U; i < (CHUNK_SIZE / (sizeof(index_t))); ++i)
@@ -66,25 +65,17 @@ namespace Ouro
     return enqueue(i);
   }
 
-  __dpct_inline__ int IndexQueue::dequeue(index_t &element)
+  inline int IndexQueue::dequeue(index_t &element)
   {
-    int readable =
-      dpct::atomic_fetch_sub<sycl::access::address_space::generic_space>(
-                                                                         &count_, 1);
+    int readable = atomicSub(&count_, 1);
     if (readable <= 0)
       {
         //dequeue not working is a common case
-        dpct::atomic_fetch_add<
-          sycl::access::address_space::generic_space>(&count_, 1);
+        atomicAdd(&count_, 1);
         return FALSE;
       }
-    unsigned int pos =
-      dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(
-                                                                         &front_, 1) %
-      size_;
-    //        while ((element = atomicExch(queue_ + pos, DeletionMarker<index_t>::val)) == DeletionMarker<index_t>::val)
-    Ouro::Atomic<unsigned> atomicQP(queue_[pos]);
-    while ((element = atomicQP.exchange(DeletionMarker<index_t>::val)) == DeletionMarker<index_t>::val)
+    unsigned int pos = atomicAdd(&front_, 1) % size_;
+    while ((element = atomicExch(queue_ + pos, DeletionMarker<index_t>::val)) == DeletionMarker<index_t>::val)
       Ouro::sleep();
     return TRUE;
   }

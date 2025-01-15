@@ -1,7 +1,6 @@
 #pragma once
 #include "Parameters.h"
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "ChunkQueueVA.dp.hpp"
 #include "device/ChunkAccess_impl.dp.hpp"
 #include "device/BulkSemaphore_impl.dp.hpp"
@@ -15,9 +14,10 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void
+  inline void
   ChunkQueueVA<CHUNK_TYPE>::init(const Desc& d,MemoryManagerType *memory_manager)
   {
+    // Preallocate all chunks, as a timing problem seems between threads on different processing units
     for (int i = d.item.get_global_id(0);
          i < size_;
          i +=d.item.get_global_range(0))
@@ -39,7 +39,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ bool ChunkQueueVA<CHUNK_TYPE>::enqueueChunk(const Desc& d,
+  inline bool ChunkQueueVA<CHUNK_TYPE>::enqueueChunk(const Desc& d,
                                                               MemoryManagerType *memory_manager, index_t chunk_index,
                                                               index_t pages_per_chunk, typename MemoryManagerType::ChunkType *chunk)
   {
@@ -69,11 +69,11 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void *
+  inline void *
   ChunkQueueVA<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
   {
     using ChunkType = typename MemoryManagerType::ChunkType;
-
+    
     uint32_t page_index, chunk_index;
     auto pages_per_chunk = MemoryManagerType::QI::getPagesPerChunkFromQueueIndex(queue_index_);
     ChunkType* chunk{ nullptr };
@@ -98,13 +98,14 @@ namespace Ouro
     */
     sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
 
-    unsigned int virtual_pos = front_;
+    unsigned int virtual_pos = atomicAdd(&front_,0);
     while (true)
       {
+        sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
         auto chunk_id = computeChunkID(virtual_pos);
 
         index_t queue_chunk_index{0};
-        if((queue_chunk_index = queue_[chunk_id]) == DeletionMarker<index_t>::val) 
+        if((queue_chunk_index = atomicAdd(&queue_[chunk_id],0)) == DeletionMarker<index_t>::val) 
           {
             ++virtual_pos;
             continue;
@@ -126,6 +127,7 @@ namespace Ouro
           {
             chunk = ChunkType::getAccess(memory_manager->d_data, chunk_index);
             const auto mode = chunk->access.allocPage(d,page_index);
+            sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
             if (mode == ChunkType::ChunkAccessType::Mode::SUCCESSFULL)
               {
                 break;
@@ -168,16 +170,13 @@ namespace Ouro
         ++virtual_pos;
         // ##############################################################################################################
         // Error Checking
-        if (!FINAL_RELEASE)
+        if (virtual_pos > back_)
           {
-            if (virtual_pos > back_)
-              {
-                if (!FINAL_RELEASE)
-                  d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" - "
-                    "We done fucked up! Front: "<<virtual_pos<<
-                    " Back: "<<back_<<" : Count: "<<count_<<sycl::endl;
-                return nullptr;
-              }
+            if (!FINAL_RELEASE)
+              d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<" - "
+                "We done fucked up! Front: "<<front_<<"virtual pos "<<virtual_pos<<
+                " Back: "<<back_<<" : Count: "<<count_<<sycl::endl;
+            return nullptr;
           }
       }
 
@@ -188,7 +187,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void
+  inline void
   ChunkQueueVA<CHUNK_TYPE>::freePage(const Desc& d,MemoryManagerType *memory_manager,
                                      MemoryIndex index)
   {
@@ -207,9 +206,7 @@ namespace Ouro
         sycl::atomic_fence(sycl::memory_order::acq_rel, sycl::memory_scope::device);
 
         // We are the first to free something in this chunk, add it back to the queue
-        if (dpct::atomic_fetch_add<
-            sycl::access::address_space::generic_space>(
-                                                        &count_, 1) < static_cast<int>(num_spots_))
+        if (atomicAdd(&count_, 1) < static_cast<int>(num_spots_))
           {
             enqueue(d,memory_manager, index.getChunkIndex(), chunk);
           }
@@ -268,7 +265,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void ChunkQueueVA<CHUNK_TYPE>::enqueue(const Desc& d,
+  inline void ChunkQueueVA<CHUNK_TYPE>::enqueue(const Desc& d,
                                                          MemoryManagerType *memory_manager, index_t index,
                                                          typename MemoryManagerType::ChunkType *chunkindex_chunk)
   {
@@ -318,7 +315,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ QueueChunk<typename CHUNK_TYPE::Base> *
+  inline QueueChunk<typename CHUNK_TYPE::Base> *
   ChunkQueueVA<CHUNK_TYPE>::accessQueueElement(const Desc& d,MemoryManagerType *memory_manager,
                                                index_t chunk_id,
                                                index_t v_position)

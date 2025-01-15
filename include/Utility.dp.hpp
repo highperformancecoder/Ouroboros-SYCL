@@ -1,6 +1,5 @@
 #pragma once
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "Utility.h"
 #include <time.h>
 
@@ -35,7 +34,7 @@ namespace Ouro
     void free(void* p) {m.free(m_desc,p);}
   };
   
-  __dpct_inline__ void sleep(unsigned int factor = 1)
+  inline void sleep(unsigned int factor = 1)
   {
 #ifdef DPCT_COMPATIBILITY_TEMP
     //#if (DPCT_COMPATIBILITY_TEMP >= 700)
@@ -53,7 +52,7 @@ namespace Ouro
 #endif
   }
 
-  __dpct_inline__ int atomicAggInc(unsigned int *ptr)
+  inline int atomicAggInc(unsigned int *ptr)
   {
     return Atomic<unsigned>(*ptr).fetch_add(1);
   }

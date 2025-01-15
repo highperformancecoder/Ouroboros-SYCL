@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #pragma once
 
 #include "Definitions.h"
@@ -39,39 +38,39 @@ namespace Ouro
 
     // Methods
     template <typename MemoryManagerType>
-    __dpct_inline__ bool preFillQueue(MemoryManagerType *memory_manager,
+    inline bool preFillQueue(MemoryManagerType *memory_manager,
                                       index_t chunk_index,
                                       index_t pages_per_chunk)
     {
       return enqueueChunk(memory_manager, chunk_index, pages_per_chunk);
     }
 
-    __dpct_inline__ uint32_t getCount() const
+    inline uint32_t getCount() const
     {
       return semaphore.getCount();
     }
 
     template <typename Desc,typename MemoryManagerType>
-    __dpct_inline__ void init(const Desc&,MemoryManagerType *memory_manager);
+    inline void init(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename MemoryManagerType>
-    __dpct_inline__ bool
+    inline bool
     enqueueInitialChunk(MemoryManagerType *memory_manager,
                         index_t chunk_index, int available_pages,
                         index_t pages_per_chunk);
 
     template <typename Desc,typename MemoryManagerType>
-    __dpct_inline__ void *allocPage(const Desc&,MemoryManagerType *memory_manager);
+    inline void *allocPage(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename Desc,typename MemoryManagerType>
-    __dpct_inline__ void freePage(const Desc&,MemoryManagerType *memory_manager,
+    inline void freePage(const Desc&,MemoryManagerType *memory_manager,
                                   MemoryIndex index);
 
     template <typename Desc,typename MemoryManagerType>
-    __dpct_inline__ void enqueue(const Desc&, MemoryManagerType *memory_manager,
+    inline void enqueue(const Desc&, MemoryManagerType *memory_manager,
                                  index_t index);
     template <typename Desc,typename MemoryManagerType>
-    __dpct_inline__ bool enqueueChunk(const Desc&,MemoryManagerType *memory_manager,
+    inline bool enqueueChunk(const Desc&,MemoryManagerType *memory_manager,
                                       index_t chunk_index,
                                       index_t pages_per_chunk);
   };

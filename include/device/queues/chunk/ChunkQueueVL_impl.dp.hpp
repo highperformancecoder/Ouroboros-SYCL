@@ -1,7 +1,6 @@
 #pragma once
 #include "Parameters.h"
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "ChunkQueueVL.dp.hpp"
 #include "device/ChunkAccess_impl.dp.hpp"
 #include "device/BulkSemaphore_impl.dp.hpp"
@@ -15,7 +14,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void
+  inline void
   ChunkQueueVL<CHUNK_TYPE>::init(const Desc& d, MemoryManagerType *memory_manager)
   {
     if (d.item.get_global_linear_id() == 0)
@@ -39,7 +38,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ bool
+  inline bool
   ChunkQueueVL<CHUNK_TYPE>::enqueueChunk(const Desc& d,MemoryManagerType *memory_manager,
                                          index_t chunk_index,
                                          index_t pages_per_chunk)
@@ -62,7 +61,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename MemoryManagerType>
-  __dpct_inline__ bool ChunkQueueVL<CHUNK_TYPE>::enqueueInitialChunk(
+  inline bool ChunkQueueVL<CHUNK_TYPE>::enqueueInitialChunk(
                                                                      MemoryManagerType *memory_manager, index_t chunk_index, int available_pages,
                                                                      index_t pages_per_chunk)
   {
@@ -75,11 +74,12 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void *
+  inline void *
   ChunkQueueVL<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
   {
     using ChunkType = typename MemoryManagerType::ChunkType;
-
+    using sycl::ext::oneapi::experimental::printf;
+    
     MemoryIndex index;
     uint32_t chunk_index, page_index;
     auto pages_per_chunk = MemoryManagerType::QI::getPagesPerChunkFromQueueIndex(queue_index_);
@@ -101,10 +101,10 @@ namespace Ouro
 
     
     sycl::atomic_fence(sycl::memory_order::seq_cst,
-                       sycl::memory_scope::work_group);
+                       sycl::memory_scope::device);
     sycl::group_barrier(d.item.get_sub_group());
 
-    unsigned int virtual_pos = front_;
+    unsigned int virtual_pos = atomicAdd(&front_,0);
     auto queue_chunk = front_ptr_;
     while(true)
       {
@@ -116,7 +116,7 @@ namespace Ouro
           restrictions are needed.
         */
         sycl::atomic_fence(sycl::memory_order::seq_cst,
-                           sycl::memory_scope::work_group);
+                           sycl::memory_scope::device);
 
         // This position might be out-dated already
         queue_chunk->access(Ouro::modPower2<QueueChunkType::num_spots_>(virtual_pos), chunk_index);
@@ -159,6 +159,8 @@ namespace Ouro
                   d.out<<"ThreadIDx: "<<d.item.get_local_linear_id()<<" BlockIdx: "<<d.item.get_group_linear_id()<<
                     " - Front: "<<virtual_pos<<" Back: "<<back_<<
                     " - ChunkIndex: "<<chunk_index<<sycl::endl;
+                // if this code is removed, then vl_main_c crashes on NVidia. Why?
+                sycl::ext::oneapi::experimental::printf("virtual_pos > back_\n");
                 return nullptr;
               }
           }
@@ -171,7 +173,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void
+  inline void
   ChunkQueueVL<CHUNK_TYPE>::freePage(const Desc& d,MemoryManagerType *memory_manager,
                                      MemoryIndex index)
   {
@@ -235,7 +237,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void
+  inline void
   ChunkQueueVL<CHUNK_TYPE>::enqueue(const Desc& d,MemoryManagerType *memory_manager,
                                     index_t index)
   {

@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #pragma once
 
 #include "Parameters.h"
@@ -36,7 +35,7 @@ namespace Ouro
     // many are free
 
     // Methods
-    __dpct_inline__ ChunkAccess(int available_pages, uint32_t number_pages)
+    inline ChunkAccess(int available_pages, uint32_t number_pages)
       : count{available_pages}, size{int(number_pages)}
     {
       // Setup Availability mask
@@ -75,7 +74,7 @@ namespace Ouro
         }
     }
 
-    __dpct_inline__ ChunkAccess(uint32_t number_pages)
+    inline ChunkAccess(uint32_t number_pages)
       : count{static_cast<int>(number_pages)}, size{int(number_pages)}
     {
       // Setup Availability mask
@@ -98,24 +97,24 @@ namespace Ouro
         }
     }
 
-    __dpct_inline__ MaskDataType createBitPattern(int bit)
+    inline MaskDataType createBitPattern(int bit)
     {
       return ~(1U << bit);
     }
 
-    __dpct_inline__ bool checkBitSet(MaskDataType value, int bit)
+    inline bool checkBitSet(MaskDataType value, int bit)
     {
       return (1U << bit) & value;
     }
 
     // Free up a page, manipulating the count and availability mask, locking required
     template <class Desc>
-    __dpct_inline__ FreeMode freePage(const Desc&,index_t queue_index);
+    inline FreeMode freePage(const Desc&,index_t queue_index);
 
     // Try to allocate a page, locking required
     template <class Desc>
-    __dpct_inline__ Mode allocPage(const Desc&,index_t &page_index);
+    inline Mode allocPage(const Desc&,index_t &page_index);
 
-    __dpct_inline__ bool tryFlashChunk();
+    inline bool tryFlashChunk();
   };
 }

@@ -1,5 +1,5 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
+//#include <dpct/dpct.hpp>
 #pragma once
 
 #include "device/Chunk.dp.hpp"
@@ -23,7 +23,7 @@ namespace Ouro
     // ##########################################################################################################################
     PageChunk(const unsigned int page_size, uint32_t number_pages) : CommonChunk(page_size), number_pages{number_pages} {}
 
-    __dpct_inline__ void *getPage(memory_t *memory, index_t chunk_index,
+    inline void *getPage(memory_t *memory, index_t chunk_index,
                                   uint32_t page_index)
     {
       return reinterpret_cast<void*>(reinterpret_cast<memory_t*>(Base::getData(memory, chunk_index)) + (page_index * page_size));
@@ -35,17 +35,17 @@ namespace Ouro
     // ##########################################################################################################################
     // ##########################################################################################################################
 
-    static constexpr __dpct_inline__ size_t size() {
+    static constexpr inline size_t size() {
       return meta_data_size_ + size_;
     }
 
-    static __dpct_inline__ void *getData(memory_t *memory,
+    static inline void *getData(memory_t *memory,
                                          const index_t chunk_index)
     {
       return Base::getData(memory, chunk_index);
     }
 
-    static __dpct_inline__ void *getPage(memory_t *memory,
+    static inline void *getPage(memory_t *memory,
                                          const index_t chunk_index,
                                          const uint32_t page_index,
                                          const unsigned int page_size)
@@ -54,7 +54,7 @@ namespace Ouro
     }
 
     template <typename QI>
-    static __dpct_inline__ index_t
+    static inline index_t
     getQueueIndexFromPage(memory_t *memory, index_t chunk_index)
     {
       auto chunk = reinterpret_cast<PageChunk*>(Base::getMemoryAccess(memory, chunk_index));
@@ -63,7 +63,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    static __dpct_inline__ PageChunk *getAccess(memory_t *memory,
+    static inline PageChunk *getAccess(memory_t *memory,
                                                 index_t chunk_index)
     {
       return Base::template getMemoryAccess<PageChunk>(memory, chunk_index);
@@ -71,7 +71,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     // Initializer
-    static __dpct_inline__ PageChunk *initializeChunk(memory_t *memory,
+    static inline PageChunk *initializeChunk(memory_t *memory,
                                                       index_t chunk_index,
                                                       uint32_t number_pages)
     {
@@ -88,7 +88,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     // Initializer
-    static __dpct_inline__ PageChunk *
+    static inline PageChunk *
     initializeChunk(memory_t *memory, index_t chunk_index,
                     const int available_pages, uint32_t number_pages)
     {

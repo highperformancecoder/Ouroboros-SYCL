@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #pragma once
 
 #include "Definitions.h"
@@ -35,31 +34,31 @@ namespace Ouro
 
     // Methods
     template <class Desc>
-    __dpct_inline__ bool enqueue(const Desc&,index_t chunk_index, ChunkType *chunk);
+    inline bool enqueue(const Desc&,index_t chunk_index, ChunkType *chunk);
 
     template <class Desc>
-    __dpct_inline__ bool enqueueChunk(const Desc&,index_t chunk_index,
+    inline bool enqueueChunk(const Desc&,index_t chunk_index,
                                       index_t pages_per_chunk,
                                       ChunkType *chunk);
 
     template <typename Desc,typename MemoryManagerType>
-    __dpct_inline__ void init(const Desc&,MemoryManagerType *memory_manager);
+    inline void init(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename MemoryManagerType>
-    __dpct_inline__ bool
+    inline bool
     enqueueInitialChunk(MemoryManagerType *memory_manager,
                         index_t chunk_index, int available_pages,
                         index_t pages_per_chunk);
 
     template <typename Desc,typename MemoryManagerType>
-    __dpct_inline__ void *allocPage(const Desc&,MemoryManagerType *memory_manager);
+    inline void *allocPage(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename Desc,typename MemoryManagerType>
-    __dpct_inline__ void freePage(const Desc&,MemoryManagerType *memory_manager,
+    inline void freePage(const Desc&,MemoryManagerType *memory_manager,
                                   MemoryIndex index);
 
     template <typename MemoryManagerType>
-    __dpct_inline__ bool
+    inline bool
     preFillQueue(MemoryManagerType *memory_manager, index_t chunk_index,
                  index_t pages_per_chunk, ChunkType *chunk = nullptr)
     {
@@ -74,7 +73,7 @@ namespace Ouro
       back_ = 0;
     }
 
-    __dpct_inline__ uint32_t getCount()
+    inline uint32_t getCount()
     {
       return semaphore.getCount();
     }

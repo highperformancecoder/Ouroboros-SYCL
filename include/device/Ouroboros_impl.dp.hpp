@@ -1,6 +1,5 @@
 #pragma once
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "Ouroboros.dp.hpp"
 #include "device/queues/Queues_impl.dp.hpp"
 #include "device/queues/chunk/ChunkQueue_impl.dp.hpp"
@@ -20,7 +19,7 @@ namespace Ouro
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
   template <typename Desc>
-  __dpct_inline__ void *OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE,
+  inline void *OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE,
                                         NUMBER_QUEUES>::allocPage(const Desc& d,size_t size)
   {
     if(statistics_enabled)
@@ -36,7 +35,7 @@ namespace Ouro
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
   template <typename Desc>
-  __dpct_inline__ void
+  inline void
   OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage
   (const Desc& d, MemoryIndex index)
   {
@@ -60,7 +59,7 @@ namespace Ouro
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
   template <typename Desc>
-  __dpct_inline__ void *
+  inline void *
   OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::allocPage(const Desc& d, size_t size)
   {
     if(statistics_enabled)
@@ -75,7 +74,7 @@ namespace Ouro
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
   template <typename Desc>
-  __dpct_inline__ void
+  inline void
   OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage
   (const Desc& d, MemoryIndex index)
   {
@@ -98,7 +97,7 @@ namespace Ouro
   //
   template <class OUROBOROS, class... OUROBOROSES>
   template <typename Desc>
-  __dpct_inline__ void *Ouroboros<OUROBOROS, OUROBOROSES...>::malloc(const Desc& d, size_t size)
+  inline void *Ouroboros<OUROBOROS, OUROBOROSES...>::malloc(const Desc& d, size_t size)
   {
     if(size <= ConcreteOuroboros::LargestPageSize_)
       {
@@ -111,7 +110,7 @@ namespace Ouro
   //
   template <class OUROBOROS, class... OUROBOROSES>
   template <typename Desc>
-  __dpct_inline__ void Ouroboros<OUROBOROS, OUROBOROSES...>::free(const Desc& d, void *ptr)
+  inline void Ouroboros<OUROBOROS, OUROBOROSES...>::free(const Desc& d, void *ptr)
   {
     if(!validOuroborosPointer(ptr))
       {
@@ -131,7 +130,7 @@ namespace Ouro
   //
   template <class OUROBOROS, class... OUROBOROSES>
   template <typename Desc>
-  __dpct_inline__ void
+  inline void
   Ouroboros<OUROBOROS, OUROBOROSES...>::freePageRecursive(const Desc& d, unsigned int page_size,
                                                           MemoryIndex index)
   {
@@ -153,24 +152,20 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename MemoryManagerType>
-  void updateMemoryManagerHost(MemoryManagerType& memory_manager)
+  void updateMemoryManagerHost(sycl::queue& queue, MemoryManagerType& memory_manager)
   {
-    HANDLE_ERROR(DPCT_CHECK_ERROR(
-                                  dpct::get_in_order_queue()
-                                  .memcpy(&memory_manager, memory_manager.memory.d_memory,
-                                          sizeof(memory_manager))
-                                  .wait()));
+    queue.memcpy(&memory_manager, memory_manager.memory.d_memory,
+                 sizeof(memory_manager))
+      .wait();
   }
 
   // ##############################################################################################################################################
   //
-  template <typename MemoryManagerType>
-  void updateMemoryManagerDevice(MemoryManagerType& memory_manager)
-  {
-    HANDLE_ERROR(DPCT_CHECK_ERROR(
-                                  dpct::get_in_order_queue()
-                                  .memcpy(memory_manager.memory.d_memory, &memory_manager,
-                                          sizeof(memory_manager))
-                                  .wait()));
-  }
+ template <typename MemoryManagerType>
+ void updateMemoryManagerDevice(sycl::queue& queue, MemoryManagerType& memory_manager)
+ {
+   queue.memcpy(memory_manager.memory.d_memory, &memory_manager,
+                sizeof(memory_manager))
+     .wait();
+ }
 }

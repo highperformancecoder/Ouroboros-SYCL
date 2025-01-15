@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #pragma once
 
 #include "device/ChunkAccess.dp.hpp"
@@ -10,7 +9,7 @@ namespace Ouro
   //
   template <size_t SIZE, size_t SMALLEST_PAGE>
   template <typename Desc>
-  __dpct_inline__ typename ChunkAccess<SIZE, SMALLEST_PAGE>::FreeMode
+  inline typename ChunkAccess<SIZE, SMALLEST_PAGE>::FreeMode
   ChunkAccess<SIZE, SMALLEST_PAGE>::freePage(const Desc&,index_t page_index)
   {
     const int mask_index = page_index / (Ouro::sizeofInBits<MaskDataType>());
@@ -34,7 +33,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <size_t SIZE, size_t SMALLEST_PAGE>
-  __dpct_inline__ bool ChunkAccess<SIZE, SMALLEST_PAGE>::tryFlashChunk()
+  inline bool ChunkAccess<SIZE, SMALLEST_PAGE>::tryFlashChunk()
   {
     // Try to reduce count to 0, if previous value is != size, someone tries do allocate from this chunk right now!
     return atomicCAS(&count, size, 0) == size;
@@ -44,7 +43,7 @@ namespace Ouro
   //
   template <size_t SIZE, size_t SMALLEST_PAGE>
   template <typename Desc>
-  __dpct_inline__ typename ChunkAccess<SIZE, SMALLEST_PAGE>::Mode
+  inline typename ChunkAccess<SIZE, SMALLEST_PAGE>::Mode
   ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(const Desc& d,index_t &page_index)
   {
     int current_count{ 0 };
@@ -85,7 +84,7 @@ namespace Ouro
     //int bitmask_index = threadIdx.x;
     int bitmask_index = d.item.get_local_linear_id();
 
-    // There is a reason why this is a while true loop and not just a loop over all MAXIMUM_MITMASK_SIZE entries
+    // There is a reason why this is a while true loop and not just a loop over all MAXIMUM_BITMASK_SIZE entries
     // Imagine we have 2 threads, currently one page in mask 3
     // One thread decrements the count and starts at the first mask to look for the bit -> does not find any
     // One thread then frees a page on the first mask
@@ -94,17 +93,20 @@ namespace Ouro
     // Hence, we need a while(true) loop, since we are guaranteed to find a bit, but not guaranteed that someone steals our bit
     unsigned int iters{0U};
 
-    //while(true)
-    while(++iters<100000)
+    //d.out<<"MaximumBitMaskSize_="<<MaximumBitMaskSize_<<sycl::endl;
+    
+    while(true)
+    //while(++iters<100000)
       {
         // We want each thread starting at a different position, for this we do a circular shift
         // This way we can still use the build in __ffsll but will still start our search at different 
         // positions
         // Load mask -> shift by offset to the right and then append whatever was shifted out at the top
-        auto current_mask = availability_mask[(++bitmask_index) % MaximumBitMaskSize_];
+        auto current_mask = atomicAdd(&availability_mask[(++bitmask_index) % MaximumBitMaskSize_],0);
         auto without_lower_part = current_mask >> offset;
         auto final_mask = without_lower_part | (current_mask << (Ouro::sizeofInBits<MaskDataType>() - offset));
-        //while((least_significant_bit = /*__ffsll*/(sycl::ctz(final_mask)+1)&sizeof(fina))
+        //while((least_significant_bit = __ffsll(final_mask))
+        // original code was above, but least_significant_bit==0 => final_mask=0
         while (final_mask)
           {
             //--least_significant_bit; // Get actual bit position (as bit 0 return 1)

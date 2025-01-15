@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #pragma once
 
 #include "Utility.dp.hpp"
@@ -24,7 +23,7 @@ namespace Ouro
 
     // ###################################################################
     // Size
-    static constexpr __dpct_inline__ size_t size()
+    static constexpr inline size_t size()
     {
       return meta_data_size_ + size_;
     }
@@ -32,7 +31,7 @@ namespace Ouro
     // ##############################################################################################################################################
     //
     template <typename T = memory_t>
-    static __dpct_inline__ T *getMemoryAccess(memory_t *memory,
+    static inline T *getMemoryAccess(memory_t *memory,
                                               const index_t chunk_index)
     {
       return reinterpret_cast<T*>(&memory[chunk_index * size()]);
@@ -40,7 +39,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    static __dpct_inline__ void *getData(memory_t *memory,
+    static inline void *getData(memory_t *memory,
                                          const index_t chunk_index)
     {
       return getMemoryAccess<memory_t>(memory, chunk_index) + meta_data_size_;
@@ -48,7 +47,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    static __dpct_inline__ void *getPage(memory_t *memory,
+    static inline void *getPage(memory_t *memory,
                                          const index_t chunk_index,
                                          const uint32_t page_index,
                                          const int page_size)
@@ -58,7 +57,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    static __dpct_inline__ index_t getIndexFromPointer(memory_t *memory,
+    static inline index_t getIndexFromPointer(memory_t *memory,
                                                        void *chunk)
     {
       // INFO: This will not always report the correct chunk index for MultiOuroboros, but this should not matter
@@ -68,7 +67,7 @@ namespace Ouro
     // ##############################################################################################################################################
     //
     template <unsigned int CHUNK_SIZE>
-    static __dpct_inline__ MemoryIndex
+    static inline MemoryIndex
     getPageIndexFromPointer(memory_t *memory, void *page, index_t page_size)
     {
       MemoryIndex index;

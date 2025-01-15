@@ -1,14 +1,13 @@
 #pragma once
 
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "BulkSemaphore.dp.hpp"
 
 namespace Ouro
 {
   // ##############################################################################################################################################
   //
-  __dpct_inline__ bool BulkSemaphore::tryReduce(int N)
+  inline bool BulkSemaphore::tryReduce(int N)
   {
     // Reduce by N-1
     uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
@@ -23,9 +22,10 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename Desc,typename T>
-  __dpct_inline__ void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pages_on_chunk,
+  inline void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pages_on_chunk,
                                            T allocationFunction)
   {
+    using sycl::ext::oneapi::experimental::printf;
     enum class Mode
       {
         AllocateChunk, AllocatePage, Reserve, Invalid
@@ -50,7 +50,7 @@ namespace Ouro
         int expected, reserved, count;
 		
         // Read from global
-        BulkSemaphore new_semaphore_value{ value };
+        BulkSemaphore new_semaphore_value{ atomicAdd(&value,0) };
         do
           {
             old_semaphore_value = new_semaphore_value;
@@ -106,35 +106,35 @@ namespace Ouro
                 // Read from global
                 read(new_semaphore_value);
                 new_semaphore_value.getValues(count, expected, reserved);
-                if (counter>10000)
-                  {
-                    d.out<<"Timed out waiting for resources\n";
-                    break;
-                  }
+//                if (counter>10000)
+//                  {
+//                    printf("Timed out waiting for resources\n");
+//                    break;
+//                  }
               } while ((count < N) && (reserved < (count + expected)));
 
             // ##############################################
             // Reduce reserved count
             atomicAdd(&value, create64BitSubAdder_reserved(N));
           }
-        if (loop++>100)
-          {
-            d.out<<"Timed out in allocation loop\n";
-            return;
-          }
+//        if (loop++>100)
+//          {
+//            printf("Timed out in allocation loop\n");
+//            return;
+//          }
       }
   }
 
   // ##############################################################################################################################################
   //
-  __dpct_inline__ int BulkSemaphore::signalExpected(unsigned long long N)
+  inline int BulkSemaphore::signalExpected(unsigned long long N)
   {
     return static_cast<int>(atomicAdd(&value, N + create64BitSubAdder_expected(N)) & highest_value_mask) - null_value;
   }
 
   // ##############################################################################################################################################
   //
-  __dpct_inline__ int BulkSemaphore::signal(unsigned long long N)
+  inline int BulkSemaphore::signal(unsigned long long N)
   {
     return static_cast<int>(atomicAdd(&value, N) & highest_value_mask) - null_value;
   }

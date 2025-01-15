@@ -2,7 +2,6 @@
 
 #define DPCT_PROFILING_ENABLED
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include <string>
 
 #include "Definitions.h"
@@ -10,95 +9,12 @@
 
 namespace Ouro
 {
-  // ##############################################################################################################################################
-  //
-  static inline void HandleError(dpct::err0 err, const char *string,
-                                 const char *file, int line) {
-  }
-
-  // ##############################################################################################################################################
-  //
-  static inline void HandleError(const char *file,
-                                 int line) {
-    /*
-      DPCT1010:13: SYCL uses exceptions to report errors and does not use the
-      error codes. The call was replaced with 0. You need to rewrite this
-      code.
-    */
-    auto err = 0;
-  }
-
-#define HANDLE_ERROR( err ) (Ouro::HandleError( err, "", __FILE__, __LINE__ ))
-#define HANDLE_ERROR_S( err , string) (Ouro::HandleError( err, string, __FILE__, __LINE__ ))
-
-  // ##############################################################################################################################################
-  //
-  static inline void DEBUG_checkKernelError(const char* message = nullptr)
-  {
-    if (debug_enabled)
-      {
-        /*
-          DPCT1010:15: SYCL uses exceptions to report errors and does not
-          use the error codes. The call was replaced with 0. You need to
-          rewrite this code.
-        */
-        HANDLE_ERROR(0);
-        HANDLE_ERROR(DPCT_CHECK_ERROR(
-                                      dpct::get_current_device().queues_wait_and_throw()));
-        if (printDebug && message)
-          printf("%s\n", message);
-      }
-  }
-
   void queryAndPrintDeviceProperties();
 
 
   // ##############################################################################################################################################
   //
-  void inline start_clock(dpct::event_ptr &start, dpct::event_ptr &end)
-  {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.in_order_queue();
-    HANDLE_ERROR(DPCT_CHECK_ERROR(start = new sycl::event()));
-    HANDLE_ERROR(DPCT_CHECK_ERROR(end = new sycl::event()));
-    /*
-      DPCT1024:16: The original code returned the error code that was further
-      consumed by the program logic. This original code was replaced with 0.
-      You may need to rewrite the program logic consuming the error code.
-    */
-    HANDLE_ERROR(DPCT_CHECK_ERROR(dpct::sync_barrier(start, &q_ct1)));
-  }
-
-  // ##############################################################################################################################################
-  //
-  float inline end_clock(dpct::event_ptr &start, dpct::event_ptr &end)
-  {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.in_order_queue();
-    float time;
-    /*
-      DPCT1024:17: The original code returned the error code that was further
-      consumed by the program logic. This original code was replaced with 0.
-      You may need to rewrite the program logic consuming the error code.
-    */
-    HANDLE_ERROR(DPCT_CHECK_ERROR(dpct::sync_barrier(end, &q_ct1)));
-    HANDLE_ERROR(DPCT_CHECK_ERROR(end->wait_and_throw()));
-    HANDLE_ERROR(DPCT_CHECK_ERROR(
-                                  time = (end->get_profiling_info<
-                                          sycl::info::event_profiling::command_end>() -
-                                          start->get_profiling_info<
-                                          sycl::info::event_profiling::command_start>()) /
-                                  1000000.0f));
-    HANDLE_ERROR(DPCT_CHECK_ERROR(dpct::destroy_event(start)));
-    HANDLE_ERROR(DPCT_CHECK_ERROR(dpct::destroy_event(end)));
-
-    // Returns ms
-    return time;
-  }
-
-  // ##############################################################################################################################################
-  //
-  static constexpr __dpct_inline__ unsigned long long
+  static constexpr inline unsigned long long
   create2Complement(unsigned long long value)
   {
     return ~(value) + 1ULL;
@@ -114,14 +30,14 @@ namespace Ouro
 
   // ##############################################################################################################################################
   //
-  template <typename T> __dpct_inline__ T divup(T a, T b)
+  template <typename T> inline T divup(T a, T b)
   {
     return (a + b - 1) / b;
   }
 
   // ##############################################################################################################################################
   //
-  template <typename T, typename O> constexpr __dpct_inline__ T divup(T a, O b)
+  template <typename T, typename O> constexpr inline T divup(T a, O b)
   {
     return (a + b - 1) / b;
   }
@@ -129,7 +45,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename T>
-  constexpr __dpct_inline__ T alignment(const T size,
+  constexpr inline T alignment(const T size,
                                         size_t alignment = CACHELINE_SIZE)
   {
     return divup<T, size_t>(size, alignment) * alignment;
@@ -137,7 +53,7 @@ namespace Ouro
 
   // ##############################################################################################################################################
   //
-  template <typename T> constexpr __dpct_inline__ size_t sizeofInBits()
+  template <typename T> constexpr inline size_t sizeofInBits()
   {
     return sizeof(T) * BYTE_SIZE;
   }
@@ -222,29 +138,24 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename Data>
-  void updateDataHost(Data& data)
+  void updateDataHost(sycl::queue& queue, Data& data)
   {
-    HANDLE_ERROR(DPCT_CHECK_ERROR(
-                                  dpct::get_in_order_queue()
-                                  .memcpy(&data, data.d_memory, sizeof(Data))
-                                  .wait()));
+    queue.memcpy(&data, data.d_memory, sizeof(Data))
+      .wait();
   }
 
   // ##############################################################################################################################################
   //
   template <typename Data>
-  void updateDataDevice(Data& data)
+  void updateDataDevice(sycl::queue& queue, Data& data)
   {
-    HANDLE_ERROR(DPCT_CHECK_ERROR(
-                                  dpct::get_in_order_queue()
-                                  .memcpy(data.d_memory, &data, sizeof(Data))
-                                  .wait()));
+    queue.memcpy(data.d_memory, &data, sizeof(Data)).wait();
   }
 
   // ##############################################################################################################################################
   //
   template <typename T, typename SizeType>
-  static constexpr __dpct_inline__ T modPower2(T value, SizeType size)
+  static constexpr inline T modPower2(T value, SizeType size)
   {
     return value & (size - 1);
   }
@@ -252,7 +163,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <unsigned int size>
-  static constexpr __dpct_inline__ unsigned int
+  static constexpr inline unsigned int
   modPower2(const unsigned int value)
   {
     static_assert(isPowerOfTwo(size), "ModPower2 used with non-power of 2");
@@ -282,7 +193,7 @@ namespace Ouro
   {
     static constexpr DataType value{ 0 };
 
-    static constexpr __dpct_inline__ void setError(ErrorType &error)
+    static constexpr inline void setError(ErrorType &error)
     {
 #ifdef DPCT_COMPATIBILITY_TEMP
       atomicOr(&error, value);
@@ -291,12 +202,12 @@ namespace Ouro
 #endif
     }
 
-    static constexpr __dpct_inline__ bool checkError(ErrorType &error)
+    static constexpr inline bool checkError(ErrorType &error)
     {
       return error != 0;
     }
 
-    static constexpr __dpct_inline__ void print()
+    static constexpr inline void print()
     {
       /*
         DPCT1040:0: Use sycl::stream instead of printf if your
@@ -313,7 +224,7 @@ namespace Ouro
   {
     static constexpr DataType value{ 1 << 0 };
 
-    static constexpr __dpct_inline__ void setError(ErrorType &error)
+    static constexpr inline void setError(ErrorType &error)
     {
 #ifdef DPCT_COMPATIBILITY_TEMP
       atomicOr(&error, value);
@@ -322,12 +233,12 @@ namespace Ouro
 #endif
     }
 
-    static constexpr __dpct_inline__ bool checkError(ErrorType &error)
+    static constexpr inline bool checkError(ErrorType &error)
     {
       return error & value;
     }
 
-    static constexpr __dpct_inline__ void print()
+    static constexpr inline void print()
     {
       /*
         DPCT1040:1: Use sycl::stream instead of printf if your
@@ -344,7 +255,7 @@ namespace Ouro
   {
     static constexpr DataType value{ 1 << 1 };
 
-    static constexpr __dpct_inline__ void setError(ErrorType &error)
+    static constexpr inline void setError(ErrorType &error)
     {
 #ifdef DPCT_COMPATIBILITY_TEMP
       atomicOr(&error, value);
@@ -353,12 +264,12 @@ namespace Ouro
 #endif
     }
 
-    static constexpr __dpct_inline__ bool checkError(ErrorType &error)
+    static constexpr inline bool checkError(ErrorType &error)
     {
       return error & value;
     }
 
-    static constexpr __dpct_inline__ void print()
+    static constexpr inline void print()
     {
       /*
         DPCT1040:2: Use sycl::stream instead of printf if your
@@ -375,7 +286,7 @@ namespace Ouro
   {
     static constexpr DataType value{ 1 << 2 };
 
-    static constexpr __dpct_inline__ void setError(ErrorType &error)
+    static constexpr inline void setError(ErrorType &error)
     {
 #ifdef DPCT_COMPATIBILITY_TEMP
       atomicOr(&error, value);
@@ -384,12 +295,12 @@ namespace Ouro
 #endif
     }
 
-    static constexpr __dpct_inline__ bool checkError(ErrorType &error)
+    static constexpr inline bool checkError(ErrorType &error)
     {
       return error & value;
     }
 
-    static constexpr __dpct_inline__ void print()
+    static constexpr inline void print()
     {
       /*
         DPCT1040:3: Use sycl::stream instead of printf if your

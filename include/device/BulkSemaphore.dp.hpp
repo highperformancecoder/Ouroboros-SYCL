@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #pragma once
 
 #include "Utility.dp.hpp"
@@ -14,19 +13,19 @@ namespace Ouro
 	
     // ################################################################################################################
     // Primitives
-    __dpct_inline__ unsigned long long
+    inline unsigned long long
     create64BitSubAdder_expected(unsigned long long N)
     {
       return ~(N << middle_mask_shift) + 1;
     }
 
-    __dpct_inline__ unsigned long long
+    inline unsigned long long
     create64BitSubAdder_reserved(unsigned long long N)
     {
       return ~(N << upper_mask_shift) + 1;
     }
 
-    __dpct_inline__ void getValues(int &count, int &expected, int &reserved) const
+    inline void getValues(int &count, int &expected, int &reserved) const
     {
       count = getCount();
       expected = static_cast<int>((value >> middle_mask_shift) & (highest_value_mask));
@@ -34,7 +33,7 @@ namespace Ouro
     }
 
     // Create a new value
-    static __dpct_inline__ unsigned long long
+    static inline unsigned long long
     createValueExternal(int count, int expected, int reserved)
     {
       return static_cast<unsigned long long>(count) + null_value
@@ -43,12 +42,12 @@ namespace Ouro
     }
 
     // Create a new value
-    __dpct_inline__ void createValueInternal(int count, int expected, int reserved)
+    inline void createValueInternal(int count, int expected, int reserved)
     {
       value = createValueExternal(count, expected, reserved);
     }
 
-    __dpct_inline__ void read(BulkSemaphore &semaphore)
+    inline void read(BulkSemaphore &semaphore)
     {
       semaphore.value = value;
     }
@@ -68,24 +67,24 @@ namespace Ouro
     BulkSemaphore(unsigned long long init_value) : value{init_value}{}
 	
     // Value extractor
-    __dpct_inline__ int getCount() const
+    inline int getCount() const
     {
       return static_cast<int>(value & highest_value_mask) - null_value;
     }
 
     // Try to allocate some resource
     template <typename Desc,typename T>
-    __dpct_inline__ void wait(const Desc&,int N, uint32_t number_pages_on_chunk,
+    inline void wait(const Desc&,int N, uint32_t number_pages_on_chunk,
                               T allocationFunction);
   
     // Try to increase resources
-    __dpct_inline__ bool tryReduce(int N);
+    inline bool tryReduce(int N);
 
     // Free a resource (number of pages only set for the thread which allocated stuff)
-    __dpct_inline__ int signalExpected(unsigned long long N);
+    inline int signalExpected(unsigned long long N);
 
     // Free a resource (number of pages only set for the thread which allocated stuff)
-    __dpct_inline__ int signal(unsigned long long N);
+    inline int signal(unsigned long long N);
 
     unsigned long long value{null_value};
     static constexpr unsigned long long null_value {(1ULL << (middle_mask_shift - 1))};

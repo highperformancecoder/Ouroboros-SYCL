@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #pragma once
 
 #include "Parameters.h"
@@ -23,34 +22,34 @@ namespace Ouro
 
     // Methods
     // ----------------------------------------------------------------------------
-    __dpct_inline__ uint32_t getIndex() { return index; }
+    inline uint32_t getIndex() { return index; }
     // ----------------------------------------------------------------------------
-    __dpct_inline__ void getIndex(uint32_t &chunk_index, uint32_t &page_index)
+    inline void getIndex(uint32_t &chunk_index, uint32_t &page_index)
     {
       const auto temp_index = index;
       chunk_index = temp_index >> NumBitsForPage;
       page_index = temp_index & PageBitMask;
     }
     // ----------------------------------------------------------------------------
-    __dpct_inline__ uint32_t getChunkIndex()
+    inline uint32_t getChunkIndex()
     {
       return index >> NumBitsForPage;
     }
     // ----------------------------------------------------------------------------
-    __dpct_inline__ uint32_t getPageIndex()
+    inline uint32_t getPageIndex()
     {
       return index & PageBitMask;
     }
     // ----------------------------------------------------------------------------
-    __dpct_inline__ static constexpr uint32_t
+    inline static constexpr uint32_t
     createIndex(uint32_t chunk_index, uint32_t page_index)
     {
       return (chunk_index << NumBitsForPage) + page_index;
     }
     // ----------------------------------------------------------------------------
-    __dpct_inline__ void setIndex(uint32_t ind) { index = ind; }
+    inline void setIndex(uint32_t ind) { index = ind; }
     // ----------------------------------------------------------------------------
-    __dpct_inline__ void setIndex(uint32_t chunk_index, uint32_t page_index)
+    inline void setIndex(uint32_t chunk_index, uint32_t page_index)
     {
       index = createIndex(chunk_index, page_index);
     }

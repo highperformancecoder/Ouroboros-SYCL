@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include <iostream>
 
 #define DPCT_COMPATIBILITY_TEMP 600
@@ -68,8 +67,7 @@ void d_testFree(Ouro::ThreadAllocator<MemoryManagerType>& mm, int** verification
 
 int main(int argc, char* argv[])
 {
-  dpct::device_ext &dev_ct1 = dpct::get_current_device();
-  sycl::queue &q_ct1 = dev_ct1.in_order_queue();
+  sycl::queue q_ct1({sycl::property::queue::enable_profiling()});
   std::cout << "Usage: num_allocations allocation_size_in_bytes\n";
   int num_allocations{8192};
   int allocation_size_byte{16};
@@ -150,22 +148,19 @@ int main(int argc, char* argv[])
 
   float timing_allocation{0.0f};
   float timing_free{0.0f};
-  //dpct::event_ptr start, end;
   auto deviceMemMgr=memory_manager.getDeviceMemoryManager();
   for(auto i = 0; i < num_iterations; ++i)
     {
-      auto start=clock();
-      q_ct1.submit([&](auto& h) {
+      auto ev=q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
         h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1>& item) {
           Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*deviceMemMgr);
           d_testAllocation(m, d_memory, num_allocations, allocation_size_byte);
         });
       });
-      q_ct1.wait();
-      timing_allocation += float(clock()-start)/CLOCKS_PER_SEC;
-
-      HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
+      ev.wait_and_throw();
+      timing_allocation += float(1e-6*(ev.get_profiling_info<sycl::info::event_profiling::command_end>()-
+                                       ev.get_profiling_info<sycl::info::event_profiling::command_start>()));
 
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
@@ -176,16 +171,8 @@ int main(int argc, char* argv[])
                          d_testWriteToMemory(d, d_memory, num_allocations,
                                              allocation_size_byte);
                        });
-      });
+      }).wait_and_throw();
                   
-      HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
-
-      /*
-        DPCT1049:2: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-      */
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
         h.parallel_for(
@@ -196,30 +183,27 @@ int main(int argc, char* argv[])
                                               num_allocations,
                                               allocation_size_byte);
                        });
-      });
+      }).wait_and_throw();
 
-      HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
-
-      start=clock();
-      q_ct1.submit([&](auto& h) {
+      ev=q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
         h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1> item) {
           Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*deviceMemMgr);
           d_testFree(m, d_memory, num_allocations);
         });
       });
-      q_ct1.wait();
-      timing_free += float(clock()-start)/CLOCKS_PER_SEC;
-
-      HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
+      ev.wait_and_throw();
+      timing_free += float(1e-6*(ev.get_profiling_info<sycl::info::event_profiling::command_end>()-
+                                       ev.get_profiling_info<sycl::info::event_profiling::command_start>()));
     }
   timing_allocation /= num_iterations;
   timing_free /= num_iterations;
 
-  std::cout << "Timing Allocation: " << timing_allocation << "s" << std::endl;
-  std::cout << "Timing       Free: " << timing_free << "s" << std::endl;
+  std::cout << "Timing Allocation: " << timing_allocation << "ms" << std::endl;
+  std::cout << "Timing       Free: " << timing_free << "ms" << std::endl;
 
   std::cout << "Testcase DONE!\n";
-	
+
+  sycl::free(d_memory, q_ct1);
   return 0;
 }
