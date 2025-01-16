@@ -106,11 +106,11 @@ namespace Ouro
                 // Read from global
                 read(new_semaphore_value);
                 new_semaphore_value.getValues(count, expected, reserved);
-//                if (counter>10000)
-//                  {
-//                    printf("Timed out waiting for resources\n");
-//                    break;
-//                  }
+                if (counter>10000)
+                  {
+                    d.out<<"Timed out waiting for resources\n";
+                    break;
+                  }
               } while ((count < N) && (reserved < (count + expected)));
 
             // ##############################################

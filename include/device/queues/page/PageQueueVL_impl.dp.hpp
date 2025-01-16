@@ -105,7 +105,9 @@ namespace Ouro
     unsigned int virtual_pos = Ouro::atomicAggInc(&front_);
     front_ptr_->template dequeue<Desc,QueueChunkType::DEQUEUE_MODE::DEQUEUE>
       (d,memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
-
+    if (index.index==DeletionMarker<uint32_t>::val || index.index==0)
+      return nullptr; // failed to allocated page in time
+    
     chunk_index = index.getChunkIndex();
     return ChunkType::getPage(memory_manager->d_data, chunk_index, index.getPageIndex(), page_size_);
   }

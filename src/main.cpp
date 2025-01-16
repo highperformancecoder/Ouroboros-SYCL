@@ -151,6 +151,7 @@ int main(int argc, char* argv[])
   auto deviceMemMgr=memory_manager.getDeviceMemoryManager();
   for(auto i = 0; i < num_iterations; ++i)
     {
+      std::cout<<"alloc "<<i<<std::endl;
       auto ev=q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
         h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1>& item) {
@@ -162,6 +163,7 @@ int main(int argc, char* argv[])
       timing_allocation += float(1e-6*(ev.get_profiling_info<sycl::info::event_profiling::command_end>()-
                                        ev.get_profiling_info<sycl::info::event_profiling::command_start>()));
 
+      std::cout<<"write "<<i<<std::endl;
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
         h.parallel_for(
@@ -173,6 +175,7 @@ int main(int argc, char* argv[])
                        });
       }).wait_and_throw();
                   
+      std::cout<<"read "<<i<<std::endl;
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
         h.parallel_for(
@@ -185,6 +188,7 @@ int main(int argc, char* argv[])
                        });
       }).wait_and_throw();
 
+      std::cout<<"free "<<i<<std::endl;
       ev=q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
         h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1> item) {
