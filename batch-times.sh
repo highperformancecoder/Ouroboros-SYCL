@@ -1,8 +1,10 @@
 #!/usr/bin/bash
 
 echo "Case,NumAllocations,Size,Allocation,Free"
-for numAllocations in 256 512 1024 2048 4096 8192; do
-    for size in 16 32 64 128 256 512 1024 2048 4096 8192; do
+numAllocations=256
+while [ $numAllocations -le 8192 ]; do
+    size=1000
+    while [ $size -lt 8192 ] ; do
         for c in main_c main_p va_main_c va_main_p vl_main_c vl_main_p; do
             echo -n "$c,$numAllocations,$size,"
             ./$c $numAllocations $size &>log
@@ -16,5 +18,7 @@ for numAllocations in 256 512 1024 2048 4096 8192; do
             fi
             sleep 1
         done
+        size=$[size+1000]
     done
+    numAllocation=$[numAllocation+256]
 done
