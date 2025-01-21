@@ -20,5 +20,5 @@ while [ $numAllocations -le 8192 ]; do
         done
         size=$[size+1000]
     done
-    numAllocation=$[numAllocation+256]
+    numAllocations=$[numAllocations+256]
 done
