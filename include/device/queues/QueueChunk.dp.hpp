@@ -35,7 +35,7 @@ namespace Ouro
     static constexpr int vector_width{4}; // How large is the vector store unit
     static constexpr unsigned int num_spots_vec4{num_spots_/vector_width}; // How many iterations on a QueueChunk given this vector width
     static constexpr unsigned int chunk_empty_count_dequeue {(num_spots_ + (1 << shift_value))}; // After Dequeue, this value signals chunk empty
-    static constexpr sycl::uint4 deletionmarker_vec4{
+    const sycl::uint4 deletionmarker_vec4{
       DeletionMarker<QueueDataType>::val,
       DeletionMarker<QueueDataType>::val,
       DeletionMarker<QueueDataType>::val,

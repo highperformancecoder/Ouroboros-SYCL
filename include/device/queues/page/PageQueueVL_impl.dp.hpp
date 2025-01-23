@@ -80,7 +80,6 @@ namespace Ouro
   PageQueueVL<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
   {
     using ChunkType = typename MemoryManagerType::ChunkType;
-    using sycl::ext::oneapi::experimental::printf;
 
     MemoryIndex index;
     uint32_t chunk_index;

@@ -25,7 +25,6 @@ namespace Ouro
   inline void BulkSemaphore::wait(const Desc& d,int N, uint32_t number_pages_on_chunk,
                                            T allocationFunction)
   {
-    using sycl::ext::oneapi::experimental::printf;
     enum class Mode
       {
         AllocateChunk, AllocatePage, Reserve, Invalid
@@ -50,7 +49,8 @@ namespace Ouro
         int expected, reserved, count;
 		
         // Read from global
-        BulkSemaphore new_semaphore_value{ atomicAdd(&value,0) };
+        //BulkSemaphore new_semaphore_value{ atomicAdd(&value,0) };
+        BulkSemaphore new_semaphore_value{ value };
         do
           {
             old_semaphore_value = new_semaphore_value;
@@ -85,7 +85,8 @@ namespace Ouro
         for (int i=0; i<sg.get_local_linear_range(); ++i)
           if (i==sg.get_local_linear_id() && mode == Mode::AllocateChunk)
             allocationFunction();
-
+        //if (mode == Mode::AllocateChunk) allocationFunction();
+        
         //__syncwarp();
         sycl::group_barrier(sg);
         // ##############################################

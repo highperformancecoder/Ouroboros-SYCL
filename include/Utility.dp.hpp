@@ -3,6 +3,22 @@
 #include "Utility.h"
 #include <time.h>
 
+// HipSycl supports Sycl 1.2.1, not Sycl 2020, so we need to provide an implementation of atomic_fence. 
+#ifdef ACPP_LIBKERNEL_COMPILER_SUPPORTS_CUDA
+namespace sycl
+{
+  inline void atomic_fence(sycl::memory_order, sycl::memory_scope scope)
+  {
+#ifdef SYCL_DEVICE_ONLY
+    if (scope==sycl::memory_scope::work_group)
+      __threadfence_block();
+    else
+      __threadfence_system();
+#endif
+  }
+}
+#endif
+
 namespace Ouro
 {
   template <class T> using Atomic=sycl::atomic_ref<T,sycl::memory_order::relaxed,sycl::memory_scope::device>;
@@ -54,26 +70,26 @@ namespace Ouro
 
   inline int atomicAggInc(unsigned int *ptr)
   {
-    return Atomic<unsigned>(*ptr).fetch_add(1);
+    return Atomic<unsigned>(*ptr).fetch_add(1U);
   }
 
   template <class T, class U> T atomicAdd(T* x, U v)
-  {return Atomic<T>(*x).fetch_add(v);}
+  {return Atomic<T>(*x).fetch_add(T(v));}
 
   template <class T, class U> T atomicSub(T* x, U v)
-  {return Atomic<T>(*x).fetch_sub(v);}
+  {return Atomic<T>(*x).fetch_sub(T(v));}
 
   template <class T, class U> T atomicAnd(T* x, U v)
-  {return Atomic<T>(*x).fetch_and(v);}
+  {return Atomic<T>(*x).fetch_and(T(v));}
 
   template <class T, class U> T atomicOr(T* x, U v)
-  {return Atomic<T>(*x).fetch_or(v);}
+  {return Atomic<T>(*x).fetch_or(T(v));}
 
   template <class T, class U> T atomicMax(T* x, U v)
-  {return Atomic<T>(*x).fetch_max(v);}
+  {return Atomic<T>(*x).fetch_max(T(v));}
 
   template <class T, class U> T atomicExch(T* x, U v)
-  {return Atomic<T>(*x).exchange(v);}
+  {return Atomic<T>(*x).exchange(T(v));}
 
   template <class T> T atomicCAS(T* x, T expected, T desired)
   {

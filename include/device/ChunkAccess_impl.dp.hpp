@@ -93,8 +93,6 @@ namespace Ouro
     // Hence, we need a while(true) loop, since we are guaranteed to find a bit, but not guaranteed that someone steals our bit
     unsigned int iters{0U};
 
-    //d.out<<"MaximumBitMaskSize_="<<MaximumBitMaskSize_<<sycl::endl;
-    
     while(true)
     //while(++iters<100000)
       {

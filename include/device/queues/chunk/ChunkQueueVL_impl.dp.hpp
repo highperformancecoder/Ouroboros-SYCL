@@ -78,7 +78,6 @@ namespace Ouro
   ChunkQueueVL<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
   {
     using ChunkType = typename MemoryManagerType::ChunkType;
-    using sycl::ext::oneapi::experimental::printf;
     
     MemoryIndex index;
     uint32_t chunk_index, page_index;
@@ -119,7 +118,7 @@ namespace Ouro
           {
             chunk = ChunkType::getAccess(memory_manager->d_data, chunk_index);
             const auto mode = chunk->access.allocPage(d,page_index);
-			
+            
             if (mode == ChunkType::ChunkAccessType::Mode::SUCCESSFULL)
               break;
             if (mode == ChunkType::ChunkAccessType::Mode::RE_ENQUEUE_CHUNK)
