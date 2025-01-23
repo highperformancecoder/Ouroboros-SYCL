@@ -26,8 +26,9 @@ while [ $numAllocations -le 8192 ]; do
             else
                 echo "NaN,NaN"
             fi
+            still_running=`jobs -p`
             disown
-            for pid in `jobs -p`; do kill $pid; done
+            for pid in $still_running; do kill $pid; done
             sleep 1
         done
         size=$[size+1000]
