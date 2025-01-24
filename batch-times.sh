@@ -9,7 +9,7 @@ while [ $numAllocations -le 8192 ]; do
             echo -n "$c,$numAllocations,$size,"
             ./$c $numAllocations $size &>log &
             pid=`jobs -p`
-            sleep 10&
+            sleep 500&
             wait -n
             if [ $? -eq 0 ]; then
                 # possibly still running
