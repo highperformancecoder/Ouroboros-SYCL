@@ -80,44 +80,51 @@ namespace Ouro
           } while ((new_semaphore_value.value = atomicCAS(&value, old_semaphore_value.value, new_semaphore_value.value))
                    != old_semaphore_value.value);
 
-        // serialise the allocation function within a subgroup
-        auto sg=d.item.get_sub_group();
-        for (int i=0; i<sg.get_local_linear_range(); ++i)
-          if (i==sg.get_local_linear_id() && mode == Mode::AllocateChunk)
-            allocationFunction();
-        //if (mode == Mode::AllocateChunk) allocationFunction();
-        
-        //__syncwarp();
-        sycl::group_barrier(sg);
-        // ##############################################
-        // Return if chunk allocation or page allocation
-        if (mode == Mode::AllocatePage)
-          return;
-
-        if(mode == Mode::Reserve)
+        switch (mode)
           {
-            // ##############################################
-            // Wait on our resource
-            unsigned int counter {0U};
-            do
-              {
-                // Yield for some time
-                Ouro::sleep(++counter);
-
-                // Read from global
-                read(new_semaphore_value);
-                new_semaphore_value.getValues(count, expected, reserved);
-                if (counter>10000)
-                  {
-                    d.out<<"Timed out waiting for resources\n";
-                    break;
-                  }
-              } while ((count < N) && (reserved < (count + expected)));
-
-            // ##############################################
-            // Reduce reserved count
-            atomicAdd(&value, create64BitSubAdder_reserved(N));
+          case Mode::AllocatePage: return;
+          case Mode::AllocateChunk: allocationFunction(); break;
           }
+        
+//        // serialise the allocation function within a subgroup
+//        auto sg=d.item.get_sub_group();
+//        //for (int i=0; i<sg.get_local_linear_range(); ++i)
+//        //  if (i==sg.get_local_linear_id() && mode == Mode::AllocateChunk)
+//        //    allocationFunction();
+//        if (mode == Mode::AllocateChunk) allocationFunction();
+//        
+//        // ##############################################
+//        // Return if chunk allocation or page allocation
+//        if (mode == Mode::AllocatePage)
+//          return;
+
+        //__syncwarp();
+        //sycl::group_barrier(sg);
+//        if(mode == Mode::Reserve)
+//          {
+//            // ##############################################
+//            // Wait on our resource
+//            unsigned int counter {0U};
+//            do
+//              {
+//                // Yield for some time
+//                Ouro::sleep(++counter);
+//
+//                // Read from global
+//                read(new_semaphore_value);
+//                new_semaphore_value.getValues(count, expected, reserved);
+//                if (counter>10000)
+//                  {
+//                    d.out<<"Timed out waiting for resources\n";
+//                    break;
+//                  }
+//              } while ((count < N) && (reserved < (count + expected)));
+//
+//            // ##############################################
+//            // Reduce reserved count
+//            atomicAdd(&value, create64BitSubAdder_reserved(N));
+//          }
+        
 //        if (loop++>100)
 //          {
 //            printf("Timed out in allocation loop\n");
