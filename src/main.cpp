@@ -149,11 +149,15 @@ int main(int argc, char* argv[])
   float timing_allocation{0.0f};
   float timing_free{0.0f};
   auto deviceMemMgr=memory_manager.getDeviceMemoryManager();
+
+  // precompile kernels to eliminate compilation cost from timers
+  auto bundle=sycl::get_kernel_bundle<sycl::bundle_state::executable>(q_ct1.get_context());
   for(auto i = 0; i < num_iterations; ++i)
     {
       std::cout<<"alloc "<<i<<std::endl;
       auto ev=q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
+        h.use_kernel_bundle(bundle);
         h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1>& item) {
           Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*deviceMemMgr);
           d_testAllocation(m, d_memory, num_allocations, allocation_size_byte);
@@ -166,6 +170,7 @@ int main(int argc, char* argv[])
       std::cout<<"write "<<i<<std::endl;
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
+        h.use_kernel_bundle(bundle);
         h.parallel_for(
                        sycl::nd_range<1>(num_allocations, blockSize),
                        [=](sycl::nd_item<1> item) {
@@ -178,6 +183,7 @@ int main(int argc, char* argv[])
       std::cout<<"read "<<i<<std::endl;
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
+        h.use_kernel_bundle(bundle);
         h.parallel_for(
                        sycl::nd_range<1>(num_allocations, blockSize),
                        [=](sycl::nd_item<1> item) {
@@ -191,6 +197,7 @@ int main(int argc, char* argv[])
       std::cout<<"free "<<i<<std::endl;
       ev=q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
+        h.use_kernel_bundle(bundle);
         h.parallel_for(sycl::nd_range<1>(num_allocations, blockSize), [=](const sycl::nd_item<1> item) {
           Ouro::ThreadAllocator<MemoryManagerType> m(item,out,*deviceMemMgr);
           d_testFree(m, d_memory, num_allocations);
