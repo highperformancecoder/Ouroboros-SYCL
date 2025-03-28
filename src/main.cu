@@ -140,14 +140,17 @@ int main(int argc, char* argv[])
 
 	int blockSize {256};
 	int gridSize {Ouro::divup(num_allocations, blockSize)};
-	float timing_allocation{0.0f};
-	float timing_free{0.0f};
+	float timing_allocation{0.0f}, subsequent_allocation{0};
+	float timing_free{0.0f}, subsequent_free{0};
 	cudaEvent_t start, end;
 	for(auto i = 0; i < num_iterations; ++i)
 	{
 		start_clock(start, end);
 		d_testAllocation <MemoryManagerType> <<<gridSize, blockSize>>>(memory_manager.getDeviceMemoryManager(), d_memory, num_allocations, allocation_size_byte);
-		timing_allocation += end_clock(start, end);
+                if (i)
+                  subsequent_allocation+=end_clock(start, end);
+                else
+                  timing_allocation = end_clock(start, end);
 
 		HANDLE_ERROR(cudaDeviceSynchronize());
 
@@ -161,15 +164,23 @@ int main(int argc, char* argv[])
 
 		start_clock(start, end);
 		d_testFree <MemoryManagerType> <<<gridSize, blockSize>>>(memory_manager.getDeviceMemoryManager(), d_memory, num_allocations);
-		timing_free += end_clock(start, end);
+                if (i)
+                  subsequent_free+=end_clock(start, end);
+                else
+                  timing_free = end_clock(start, end);
 
 		HANDLE_ERROR(cudaDeviceSynchronize());
 	}
+        timing_allocation+=subsequent_allocation;
 	timing_allocation /= num_iterations;
+        timing_free+=subsequent_free;
 	timing_free /= num_iterations;
+        subsequent_allocation/=(num_iterations-1);
+        subsequent_free/=(num_iterations-1);
 
-	std::cout << "Timing Allocation: " << timing_allocation << "ms" << std::endl;
-	std::cout << "Timing       Free: " << timing_free << "ms" << std::endl;
+        std::cout << "(ms)    "<<"Alloc, Subs Alloc, Free, Subs Free\n";
+	std::cout << "Timing: " << timing_allocation << "," << subsequent_allocation<<","<<timing_free<<
+          ","<<subsequent_free<<std::endl;
 
 	std::cout << "Testcase DONE!\n";
 	
