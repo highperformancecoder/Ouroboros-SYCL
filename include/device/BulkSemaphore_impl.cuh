@@ -18,7 +18,7 @@ __forceinline__ __device__ bool BulkSemaphore::tryReduce(int N)
 
 // ##############################################################################################################################################
 //
-#if (__CUDA_ARCH__ < 700)
+#if 1 //(__CUDA_ARCH__ < 700)
 template <typename T>
 __forceinline__ __device__ void BulkSemaphore::wait(int N, uint32_t number_pages_on_chunk, T allocationFunction)
 {
@@ -75,39 +75,11 @@ __forceinline__ __device__ void BulkSemaphore::wait(int N, uint32_t number_pages
 		} while ((new_semaphore_value.value = atomicCAS(&value, old_semaphore_value.value, new_semaphore_value.value))
 			!= old_semaphore_value.value);
 
-		// ##############################################
-		// Return if chunk allocation or page allocation
-		if (mode == Mode::AllocatePage)
-			return;
-
-		int predicate = (mode == Mode::AllocateChunk) ? 1 : 0;
-		if (__ballot_sync(__activemask(), predicate))
-		{
-			if(predicate)
-			{
-				allocationFunction();
-			}
-		}
-		__syncwarp();
-		if(mode == Mode::Reserve)
-		{
-			// ##############################################
-			// Wait on our resource
-			unsigned int counter {0U};
-			do
-			{
-				// Yield for some time
-				Ouro::sleep(++counter);
-
-				// Read from global
-				read(new_semaphore_value);
-				new_semaphore_value.getValues(count, expected, reserved);
-			} while ((count < N) && (reserved < (count + expected)));
-
-			// ##############################################
-			// Reduce reserved count
-			atomicAdd(&value, create64BitSubAdder_reserved(N));
-		}
+        switch (mode)
+          {
+          case Mode::AllocatePage: return;
+          case Mode::AllocateChunk: allocationFunction(); break;
+          }
 	}
 }
 #else
