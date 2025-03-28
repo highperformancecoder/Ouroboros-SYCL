@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-echo "Case,NumAllocations,Size,Allocation,Free"
+echo "Case,NumAllocations,Size,Allocation,Subs Allocation,Free,Subs Free"
 numAllocations=256
 while [ $numAllocations -le 8192 ]; do
     size=1000
@@ -16,15 +16,12 @@ while [ $numAllocations -le 8192 ]; do
                 jobs -p>jobs
                 if grep $pid jobs>/dev/null; then
                     # still running
-                    echo "NaN,NaN"
+                    echo "NaN,NaN,NaN,NaN"
                 else
-                    grep "Timing Allocation" log|cut -c20-27|tr -d '\nms'
-                    echo -n ','
-                    grep "Timing       Free" log|cut -c20-27|tr -d '\nms'
-                    echo ""
+                    grep "Timing," log|cut -c9-
                 fi
             else
-                echo "NaN,NaN"
+                echo "NaN,NaN,NaN,NaN"
             fi
             still_running=`jobs -p`
             disown
