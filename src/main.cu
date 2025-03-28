@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 
 	#endif
 
-	size_t instantitation_size = 8192ULL * 1024ULL * 1024ULL;
+	size_t instantitation_size = 512ULL * 1024ULL * 1024ULL;
 	MemoryManagerType memory_manager;
 	memory_manager.initialize(instantitation_size);
 
@@ -178,9 +178,10 @@ int main(int argc, char* argv[])
         subsequent_allocation/=(num_iterations-1);
         subsequent_free/=(num_iterations-1);
 
-        std::cout << "(ms)    "<<"Alloc, Subs Alloc, Free, Subs Free\n";
-	std::cout << "Timing: " << timing_allocation << "," << subsequent_allocation<<","<<timing_free<<
-          ","<<subsequent_free<<std::endl;
+        std::cout << "(ms),  \t"<<"Alloc,\t\tSubs Alloc,\tFree,\t\tSubs Free\n";
+	std::cout << "Timing,\t" << timing_allocation << ",\t" <<
+          subsequent_allocation<<",\t"<<timing_free<<
+          ",\t"<<subsequent_free<<std::endl;
 
 	std::cout << "Testcase DONE!\n";
 	
