@@ -146,8 +146,8 @@ int main(int argc, char* argv[])
 
   int** d_memory = sycl::malloc_device<int *>(num_allocations, q_ct1);
 
-  float timing_allocation{0.0f};
-  float timing_free{0.0f};
+  float timing_allocation{0.0f}, subsequent_allocation{0};
+  float timing_free{0.0f}, subsequent_free{0};
   auto deviceMemMgr=memory_manager.getDeviceMemoryManager();
 
   // precompile kernels to eliminate compilation cost from timers
@@ -164,9 +164,11 @@ int main(int argc, char* argv[])
         });
       });
       ev.wait_and_throw();
-      timing_allocation += float(1e-6*(ev.get_profiling_info<sycl::info::event_profiling::command_end>()-
+      auto t=float(1e-6*(ev.get_profiling_info<sycl::info::event_profiling::command_end>()-
                                        ev.get_profiling_info<sycl::info::event_profiling::command_start>()));
-
+      if (i)
+        subsequent_allocation+=t;
+      timing_allocation+=t;
       std::cout<<"write "<<i<<std::endl;
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
@@ -204,14 +206,24 @@ int main(int argc, char* argv[])
         });
       });
       ev.wait_and_throw();
-      timing_free += float(1e-6*(ev.get_profiling_info<sycl::info::event_profiling::command_end>()-
+      auto t= float(1e-6*(ev.get_profiling_info<sycl::info::event_profiling::command_end>()-
                                        ev.get_profiling_info<sycl::info::event_profiling::command_start>()));
+
+      if (i)
+        subsequent_free+=t;
+      else
+        timing_free += t;
+
     }
   timing_allocation /= num_iterations;
   timing_free /= num_iterations;
+  subsequent_allocation/=(num_iterations-1);
+  subsequent_free/=(num_iterations-1);
 
-  std::cout << "Timing Allocation: " << timing_allocation << "ms" << std::endl;
-  std::cout << "Timing       Free: " << timing_free << "ms" << std::endl;
+  std::cout << "(ms),  \t"<<"Alloc,\t\tSubs Alloc,\tFree,\t\tSubs Free\n";
+  std::cout << "Timing,\t" << timing_allocation << ",\t" <<
+    subsequent_allocation<<",\t"<<timing_free<<
+    ",\t"<<subsequent_free<<std::endl;
 
   std::cout << "Testcase DONE!\n";
 
