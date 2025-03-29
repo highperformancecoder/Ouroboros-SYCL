@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 # note - setting the compiler here doesn't appear to work. Run ccmake
 # after cmake, and manually set the compiler name
-set(CMAKE_CXX_COMPILER,icpx)
-add_compile_options(-fsycl)
+#set(CMAKE_CXX_COMPILER,icpx)
+#add_compile_options(-fsycl)
 # also -fsycl-targets=nvptx64-nvidia-cuda on NVidia environments
-add_link_options(-fsycl)
+#add_link_options(-fsycl)
 
 project(ouroboros LANGUAGES CXX VERSION 1.0)
 
