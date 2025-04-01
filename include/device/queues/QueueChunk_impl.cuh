@@ -15,60 +15,88 @@ __forceinline__ __device__ void QueueChunk<ChunkBase>::guaranteeWarpSyncPerChunk
 	int work_NOT_done{TRUE};
 
 	// TODO: This seems to work, but it is not a guarantee that this actually works
+
 	auto active_mask = __activemask();
-	while(true)
-	{
-		int predicate = (chunk_ptr->checkVirtualStart(position)) ? work_NOT_done : FALSE;
-		if (__any_sync(active_mask, predicate))
-		{
-			if(predicate)
-			{
-				// Execute function (enqueue | enqueueChunk | dequeue)
-				f(chunk_ptr);
+        while(true)     
+          {
+            if (chunk_ptr->checkVirtualStart(position))
+              {
+                f(chunk_ptr);
+                break;
+              }
 
-				__threadfence_block();
+            unsigned int counter{0};
+            // Next might not be set yet, in this case we have to wait
+            while(chunk_ptr->next_ == DeletionMarker<unsigned long long>::val)
+              {
+                if(counter++ > (1000*1000*10))
+                  {
+                    if(!FINAL_RELEASE)
+                      printf("%d : %d died in gWS from %s index: %u - ptr: %p | mask: %x\n", threadIdx.x, blockIdx.x, message, chunk_ptr->chunk_index_, chunk_ptr, active_mask);
+                    __trap();
+                  }
+                Ouro::sleep(counter);
+              }
+            if (!chunk_ptr->next_ || chunk_ptr->next_ == DeletionMarker<unsigned long long>::val)
+              break;
+            chunk_ptr=reinterpret_cast<QueueChunk<ChunkBase>*>(chunk_ptr->next_);
+          }
+        __syncwarp(active_mask);
 
-				// Now our work is done
-				work_NOT_done = FALSE;
-			}
-		}
 
-		// Guarantee that no currently active threads continues to the traversal before the allocation from before is done
-		__syncwarp(active_mask);
-
-		// Is there still someone with work left or not?
-		if (__any_sync(active_mask, work_NOT_done))
-		{
-			// This is critical for threads within a warp that operate on different queues
-			// Only threads which still have to do their work, hence expect a new chunk to arrive, should try to traverse
-			// The others, which are done, might already be at the last chunk for their queue -> they might hang here!
-			if(work_NOT_done)
-			{
-				// Continue traversal
-				unsigned long long next {DeletionMarker<unsigned long long>::val};
-				unsigned int counter{0};
-				// Next might not be set yet, in this case we have to wait
-				while((next = Ouro::ldg_cg(&chunk_ptr->next_)) == DeletionMarker<unsigned long long>::val)
-				{
-					if(counter++ > (1000*1000*10))
-					{
-						if(!FINAL_RELEASE)
-							printf("%d : %d died in gWS from %s index: %u - ptr: %p | mask: %x\n", threadIdx.x, blockIdx.x, message, chunk_ptr->chunk_index_, chunk_ptr, active_mask);
-						__trap();
-					}
-					Ouro::sleep(counter);
-				}
-
-				// Do NOT reorder here
-				__threadfence_block();
-
-				// Continue to next chunk and check there again
-				chunk_ptr = reinterpret_cast<QueueChunk<ChunkBase>*>(next);
-			}
-		}
-		else
-			break;
-	}
+//	while(true)
+//	{
+//		int predicate = (chunk_ptr->checkVirtualStart(position)) ? work_NOT_done : FALSE;
+//		if (__any_sync(active_mask, predicate))
+//		{
+//			if(predicate)
+//			{
+//				// Execute function (enqueue | enqueueChunk | dequeue)
+//				f(chunk_ptr);
+//
+//				__threadfence_block();
+//
+//				// Now our work is done
+//				work_NOT_done = FALSE;
+//			}
+//		}
+//
+//		// Guarantee that no currently active threads continues to the traversal before the allocation from before is done
+//		__syncwarp(active_mask);
+//
+//		// Is there still someone with work left or not?
+//		if (__any_sync(active_mask, work_NOT_done))
+//		{
+//			// This is critical for threads within a warp that operate on different queues
+//			// Only threads which still have to do their work, hence expect a new chunk to arrive, should try to traverse
+//			// The others, which are done, might already be at the last chunk for their queue -> they might hang here!
+//			if(work_NOT_done)
+//			{
+//				// Continue traversal
+//				unsigned long long next {DeletionMarker<unsigned long long>::val};
+//				unsigned int counter{0};
+//				// Next might not be set yet, in this case we have to wait
+//				while((next = Ouro::ldg_cg(&chunk_ptr->next_)) == DeletionMarker<unsigned long long>::val)
+//				{
+//					if(counter++ > (1000*1000*10))
+//					{
+//						if(!FINAL_RELEASE)
+//							printf("%d : %d died in gWS from %s index: %u - ptr: %p | mask: %x\n", threadIdx.x, blockIdx.x, message, chunk_ptr->chunk_index_, chunk_ptr, active_mask);
+//						__trap();
+//					}
+//					Ouro::sleep(counter);
+//				}
+//
+//				// Do NOT reorder here
+//				__threadfence_block();
+//
+//				// Continue to next chunk and check there again
+//				chunk_ptr = reinterpret_cast<QueueChunk<ChunkBase>*>(next);
+//			}
+//		}
+//		else
+//			break;
+//	}
 }
 
 // ##############################################################################################################################################
