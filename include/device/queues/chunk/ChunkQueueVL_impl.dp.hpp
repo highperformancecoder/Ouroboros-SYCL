@@ -1,7 +1,6 @@
 #pragma once
 #include "Parameters.h"
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "ChunkQueueVL.dp.hpp"
 #include "device/ChunkAccess_impl.dp.hpp"
 #include "device/BulkSemaphore_impl.dp.hpp"
@@ -15,7 +14,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void
+  void
   ChunkQueueVL<CHUNK_TYPE>::init(const Desc& d, MemoryManagerType *memory_manager)
   {
     if (d.item.get_global_linear_id() == 0)
@@ -39,7 +38,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ bool
+  bool
   ChunkQueueVL<CHUNK_TYPE>::enqueueChunk(const Desc& d,MemoryManagerType *memory_manager,
                                          index_t chunk_index,
                                          index_t pages_per_chunk)
@@ -62,7 +61,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename MemoryManagerType>
-  __dpct_inline__ bool ChunkQueueVL<CHUNK_TYPE>::enqueueInitialChunk(
+  bool ChunkQueueVL<CHUNK_TYPE>::enqueueInitialChunk(
                                                                      MemoryManagerType *memory_manager, index_t chunk_index, int available_pages,
                                                                      index_t pages_per_chunk)
   {
@@ -75,7 +74,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void *
+  void *
   ChunkQueueVL<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
   {
     using ChunkType = typename MemoryManagerType::ChunkType;
@@ -139,9 +138,7 @@ namespace Ouro
                 // }
 
                 // TODO: Why does this not work
-                dpct::atomic_fetch_max<
-                  sycl::access::address_space::generic_space>(
-                                                              &front_, virtual_pos + 1);
+                atomicMax(&front_, virtual_pos + 1);
                 front_ptr_->template dequeue<Desc,QueueChunkType::DEQUEUE_MODE::DELETE>(d,memory_manager, virtual_pos, index.index, &front_ptr_, &old_ptr_, &old_count_);
                 break;
               }
@@ -171,7 +168,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void
+  void
   ChunkQueueVL<CHUNK_TYPE>::freePage(const Desc& d,MemoryManagerType *memory_manager,
                                      MemoryIndex index)
   {
@@ -235,14 +232,12 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void
+  void
   ChunkQueueVL<CHUNK_TYPE>::enqueue(const Desc& d,MemoryManagerType *memory_manager,
                                     index_t index)
   {
     // Increase back and compute the position on a chunk
-    const unsigned int virtual_pos =
-      dpct::atomic_fetch_add<sycl::access::address_space::generic_space>(
-                                                                         &back_, 1);
+    const unsigned int virtual_pos = atomicAdd(&back_, 1);
     back_ptr_->enqueue(d,memory_manager, virtual_pos, index, &back_ptr_, &front_ptr_, &old_ptr_, &old_count_);
   }
 }

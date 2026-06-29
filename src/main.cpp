@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include <iostream>
 
 #define DPCT_COMPATIBILITY_TEMP 600
@@ -68,8 +67,8 @@ void d_testFree(Ouro::ThreadAllocator<MemoryManagerType>& mm, int** verification
 
 int main(int argc, char* argv[])
 {
-  dpct::device_ext &dev_ct1 = dpct::get_current_device();
-  sycl::queue &q_ct1 = dev_ct1.in_order_queue();
+  // note - set ONEAPI_DEVICE_SELECTOR="*:gpu" environment variable to force running on GPU
+  sycl::queue q_ct1;
   std::cout << "Usage: num_allocations allocation_size_in_bytes\n";
   int num_allocations{8192};
   int allocation_size_byte{16};
@@ -83,6 +82,8 @@ int main(int argc, char* argv[])
           allocation_size_byte = atoi(argv[2]);
         }
     }
+
+  std::cout<<q_ct1.get_device().get_info<sycl::info::device::name>()<<std::endl;
   // num_allocations needs to be a multiple of blocksize for certain SYCL devices.
   num_allocations=(num_allocations/blockSize)*blockSize;
   allocation_size_byte = Ouro::alignment(allocation_size_byte, sizeof(int));
@@ -150,7 +151,6 @@ int main(int argc, char* argv[])
 
   float timing_allocation{0.0f};
   float timing_free{0.0f};
-  //dpct::event_ptr start, end;
   for(auto i = 0; i < num_iterations; ++i)
     {
       auto start=clock();
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
       q_ct1.wait();
       timing_allocation += float(clock()-start)/CLOCKS_PER_SEC;
 
-      HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
+      q_ct1.wait_and_throw();
 
       q_ct1.submit([&](auto& h) {
         sycl::stream out(1000000,1000,h);
@@ -177,8 +177,8 @@ int main(int argc, char* argv[])
                        });
       });
                   
-      HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
-
+      q_ct1.wait_and_throw();
+      
       /*
         DPCT1049:2: The work-group size passed to the SYCL kernel may
         exceed the limit. To get the device limit, query
@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
                        });
       });
 
-      HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
+      q_ct1.wait_and_throw();
 
       start=clock();
       q_ct1.submit([&](auto& h) {
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
       q_ct1.wait();
       timing_free += float(clock()-start)/CLOCKS_PER_SEC;
 
-      HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
+      q_ct1.wait_and_throw();
     }
   timing_allocation /= num_iterations;
   timing_free /= num_iterations;

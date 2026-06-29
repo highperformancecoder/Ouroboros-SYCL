@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "Ouroboros_impl.dp.hpp"
 
 namespace Ouro
@@ -99,7 +98,7 @@ namespace Ouro
   //
   template <class OUROBOROS, class... OUROBOROSES>
   template <typename Desc>
-  __dpct_inline__ void
+  void
   Ouroboros<OUROBOROS, OUROBOROSES...>::initQueues(const Desc& d, IndexQueue *d_base_chunk_reuse)
   {
     // --------------------------------------------------------
@@ -123,7 +122,6 @@ namespace Ouro
   template<class OUROBOROS, class... OUROBOROSES>
   void Ouroboros<OUROBOROS, OUROBOROSES...>::initialize(sycl::queue& syclQueue, sycl::usm::alloc kind, size_t instantiation_size, size_t additionalSizeBeginning, size_t additionalSizeEnd)
   {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
     // Initialize memory, then call initialize on all instances
     if (initialized)
       return;
@@ -155,16 +153,16 @@ namespace Ouro
     memory.d_data_end = memory.d_memory + memory.allocationSize;
 
     // Put Memory Manager on Device
-    updateMemoryManagerDevice(*this);
+    updateMemoryManagerDevice(syclQueue,*this);
 
     syclQueue.single_task([this]() {
       d_setupMemoryPointers<MyType>(reinterpret_cast<MyType*>(memory.d_memory));
     });
 
-    HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
+    syclQueue.wait_and_throw();
 
     // Update pointers on host
-    updateMemoryManagerHost(*this);
+    updateMemoryManagerHost(syclQueue,*this);
 
     // Place chunk locator
     memory.d_data_end -= chunk_locator_size;
@@ -174,7 +172,7 @@ namespace Ouro
     initMemoryManagers();
 
     // Lets update the device again to that all the info is there as well
-    updateMemoryManagerDevice(*this);
+    updateMemoryManagerDevice(syclQueue,*this);
 
     int block_size = 256;
     int grid_size = memory.maxChunks*block_size;
@@ -186,9 +184,10 @@ namespace Ouro
         });
       }
 
-    HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
-
+    syclQueue.wait_and_throw();
+    
     block_size = 256;
+    auto dev_ct1 = syclQueue.get_device();
     grid_size=dev_ct1.get_info<sycl::info::device::max_compute_units>()*dev_ct1.get_info<sycl::info::device::max_work_group_size>();
     syclQueue.submit([&](auto& h) {
       sycl::stream out(1000000,1000,h);
@@ -199,12 +198,12 @@ namespace Ouro
                      });
     });
 
-    HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
+    syclQueue.wait_and_throw();
 
-    updateMemoryManagerHost(*this);
+    updateMemoryManagerHost(syclQueue,*this);
 
     initialized = true;
 
-    HANDLE_ERROR(DPCT_CHECK_ERROR(dev_ct1.queues_wait_and_throw()));
+    syclQueue.wait_and_throw();
   }
 }

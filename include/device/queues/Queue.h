@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #pragma once
 
 #include "Definitions.h"
@@ -10,14 +9,14 @@ namespace Ouro
   {
   public:
     template <class Desc>
-    __dpct_inline__ void init(const Desc&);
+    void init(const Desc&);
 
-    __dpct_inline__ bool enqueue(index_t i);
+    bool enqueue(index_t i);
 
     template <int CHUNK_SIZE>
-    __dpct_inline__ bool enqueueClean(index_t i, index_t *chunk_data_ptr);
+    bool enqueueClean(index_t i, index_t *chunk_data_ptr);
 
-    __dpct_inline__ int dequeue(index_t &element);
+    int dequeue(index_t &element);
 
     void resetQueue();
 

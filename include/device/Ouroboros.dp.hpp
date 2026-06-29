@@ -4,7 +4,6 @@
 #include "device/queues/Queues.dp.hpp"
 #include "Statistics.h"
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "Helper.dp.hpp"
 
 namespace Ouro
@@ -87,17 +86,17 @@ namespace Ouro
     void reinitialize(float overallocation_factor);
 
     template <class Desc>
-    __dpct_inline__ void *allocPage(const Desc& d, size_t size);
+    void *allocPage(const Desc& d, size_t size);
 
     template <class Desc>
-    __dpct_inline__ void freePage(const Desc& d, MemoryIndex index);
+    void freePage(const Desc& d, MemoryIndex index);
 
-    __dpct_inline__ void initializeQueues();
+    void initializeQueues();
 
-    __dpct_inline__ void printFreeResources();
+    void printFreeResources();
 
     template <bool QUEUECHUNK = false>
-    __dpct_inline__ void enqueueChunkForReuse(index_t chunk_index)
+    void enqueueChunkForReuse(index_t chunk_index)
     {
       if(!s_isBaseOuroboros && QUEUECHUNK)
         {
@@ -112,7 +111,7 @@ namespace Ouro
     // #################################################################################################
     // Functionality
     template <bool QUEUECHUNK = false>
-    __dpct_inline__ bool allocateChunk(index_t &chunk_index)
+    bool allocateChunk(index_t &chunk_index)
     {
 #ifdef DPCT_COMPATIBILITY_TEMP
 
@@ -185,13 +184,13 @@ namespace Ouro
     void reinitialize(float overallocation_factor);
 
     template <class Desc>
-    __dpct_inline__ void *allocPage(const Desc&,size_t size);
+    void *allocPage(const Desc&,size_t size);
 
     template <class Desc>
-    __dpct_inline__ void freePage(const Desc&,MemoryIndex index);
+    void freePage(const Desc&,MemoryIndex index);
 
     template <bool QUEUECHUNK = false>
-    __dpct_inline__ void enqueueChunkForReuse(index_t chunk_index)
+    void enqueueChunkForReuse(index_t chunk_index)
     {
       if(!s_isBaseOuroboros && QUEUECHUNK)
         {
@@ -206,7 +205,7 @@ namespace Ouro
     // #################################################################################################
     // Functionality
     template <bool QUEUECHUNK = false>
-    __dpct_inline__ bool allocateChunk(index_t &chunk_index)
+    bool allocateChunk(index_t &chunk_index)
     {
 #ifdef DPCT_COMPATIBILITY_TEMP
 
@@ -236,7 +235,7 @@ namespace Ouro
 #endif
     }
 
-    __dpct_inline__ void initializeQueues();
+    void initializeQueues();
 
     void printQueueStatistics()
     {
@@ -249,7 +248,7 @@ namespace Ouro
       printf("%s", break_line_purple);
     }
 
-    __dpct_inline__ void printFreeResources();
+    void printFreeResources();
   };
 
   template<class... OUROBOROSES>
@@ -291,16 +290,16 @@ namespace Ouro
     void reinitialize(float overallocation_factor);
 
     template <class Desc>
-    __dpct_inline__ void *malloc(const Desc&,size_t size);
+    void *malloc(const Desc&,size_t size);
 
     template <class Desc>
-    __dpct_inline__ void free(const Desc&,void *ptr);
+    void free(const Desc&,void *ptr);
 
     template <class Desc>
-    __dpct_inline__ void freePageRecursive(const Desc&,unsigned int page_size,
+    void freePageRecursive(const Desc&,unsigned int page_size,
                                            MemoryIndex index);
 
-    __dpct_inline__ void enqueueInitialChunk(index_t queue_index,
+    void enqueueInitialChunk(index_t queue_index,
                                              index_t chunk_index,
                                              int available_pages,
                                              index_t pages_per_chunk)
@@ -341,12 +340,12 @@ namespace Ouro
       next_memory_manager.init(memory);
     }
 
-    __dpct_inline__ void setMemoryPointer()
+    void setMemoryPointer()
     {
       setMemory(&memory);
     }
 
-    __dpct_inline__ void setMemory(Memory *memory)
+    void setMemory(Memory *memory)
     {
       memory_manager.d_memory = memory->d_memory;
       memory_manager.d_data = memory->d_data;
@@ -357,13 +356,13 @@ namespace Ouro
     }
 
     template <class Desc>
-    __dpct_inline__ void initQueues(const Desc&,IndexQueue *d_base_chunk_reuse);
+    void initQueues(const Desc&,IndexQueue *d_base_chunk_reuse);
 
     void printFreeResources();
 
-    __dpct_inline__ void d_printResources();
+    void d_printResources();
 
-    __dpct_inline__ bool validOuroborosPointer(void *ptr)
+    bool validOuroborosPointer(void *ptr)
     {
       if(reinterpret_cast<unsigned long long>(ptr) > reinterpret_cast<unsigned long long>(memory.d_memory) 
          && reinterpret_cast<unsigned long long>(ptr) < (reinterpret_cast<unsigned long long>(memory.d_memory) + memory.allocationSize))
@@ -383,13 +382,13 @@ namespace Ouro
     size_t totalMemoryManagerSize() {return 0ULL;}
 
     template <class Desc>
-    __dpct_inline__ void *malloc(const Desc&,size_t size)
+    void *malloc(const Desc&,size_t size)
     {
       return nullptr;
     }
 
     template <class Desc>
-    __dpct_inline__ void freePageRecursive(const Desc& d,unsigned int page_size,
+    void freePageRecursive(const Desc& d,unsigned int page_size,
                                            MemoryIndex index)
     {
       if(!FINAL_RELEASE)
@@ -399,10 +398,10 @@ namespace Ouro
       assert(0);
     }
 
-    __dpct_inline__ void setMemory(Memory *memory) {}
+    void setMemory(Memory *memory) {}
     template <class Desc>
-    __dpct_inline__ void initQueues(const Desc&,IndexQueue *d_base_chunk_reuse) {}
-    __dpct_inline__ void d_printResources() {}
+    void initQueues(const Desc&,IndexQueue *d_base_chunk_reuse) {}
+    void d_printResources() {}
     void printFreeResources(){}
     static constexpr int totalNumberVirtualQueues(){return 0;}
     static constexpr int totalNumberQueues(){return 0;}
@@ -410,7 +409,7 @@ namespace Ouro
   };
 
   template <typename MemoryManagerType>
-  void updateMemoryManagerDevice(MemoryManagerType& memory_manager);
+  void updateMemoryManagerDevice(sycl::queue& queue, MemoryManagerType& memory_manager);
   template <typename MemoryManagerType>
-  void updateMemoryManagerHost(MemoryManagerType& memory_manager);
+  void updateMemoryManagerHost(sycl::queue& queue, MemoryManagerType& memory_manager);
 }

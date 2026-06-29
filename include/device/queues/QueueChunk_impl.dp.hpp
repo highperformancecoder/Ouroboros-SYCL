@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-#include <dpct/dpct.hpp>
 #pragma once
 
 #include "device/queues/QueueChunk.dp.hpp"
@@ -10,7 +9,7 @@ namespace Ouro
   // Is instantiated 3 times for enqueue, enqueueChunk and dequeue
   template <typename ChunkBase>
   template <typename Desc,typename FUNCTION>
-  __dpct_inline__ void QueueChunk<ChunkBase>::guaranteeWarpSyncPerChunk
+  void QueueChunk<ChunkBase>::guaranteeWarpSyncPerChunk
   (const Desc& d,index_t position, const char *message, FUNCTION f)
   {
     // This functions tries to guarantee that threads that concurrently do a certain action will be synchronized in their traversal
@@ -88,7 +87,7 @@ namespace Ouro
   //
   template <typename ChunkBase>
   template <typename Desc>
-  __dpct_inline__ unsigned int
+  unsigned int
   QueueChunk<ChunkBase>::enqueue(const Desc& d,const unsigned int position,
                                  const QueueDataType element)
   {
@@ -119,7 +118,7 @@ namespace Ouro
   //
   template <typename ChunkBase>
   template <typename Desc>
-  __dpct_inline__ unsigned int
+  unsigned int
   QueueChunk<ChunkBase>::enqueueLinked(const Desc& d,const unsigned int position,
                                        const QueueDataType element)
   {
@@ -133,7 +132,7 @@ namespace Ouro
   //
   template <typename ChunkBase>
   template <typename Desc>
-  __dpct_inline__ unsigned int
+  unsigned int
   QueueChunk<ChunkBase>::enqueueLinkedv4(const Desc& d,const unsigned int position,
                                          const index_t chunk_index,
                                          const index_t start_index)
@@ -153,7 +152,7 @@ namespace Ouro
   // Enqueue a single page/chunk into the queue
   template <typename ChunkBase>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void QueueChunk<ChunkBase>::enqueue(const Desc& d,
+  void QueueChunk<ChunkBase>::enqueue(const Desc& d,
                                                       MemoryManagerType *memory_manager, const unsigned int position,
                                                       const QueueDataType element, QueueChunk<ChunkBase> **queue_next_ptr,
                                                       QueueChunk<ChunkBase> **queue_front_ptr,
@@ -215,7 +214,7 @@ namespace Ouro
   // Enqueue a full chunk into the queue (in this case many pages from a chunk)
   template <typename ChunkBase>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void
+  void
   QueueChunk<ChunkBase>::enqueueChunk(const Desc& d, MemoryManagerType *memory_manager,
                                       unsigned int position, index_t chunk_index,
                                       index_t pages_per_chunk,
@@ -364,7 +363,7 @@ namespace Ouro
   //
   template <typename ChunkBase>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ bool QueueChunk<ChunkBase>::dequeue(const Desc& d,
+  bool QueueChunk<ChunkBase>::dequeue(const Desc& d,
                                                       const unsigned int position, QueueDataType &element,
                                                       MemoryManagerType *memory_manager, QueueChunk<ChunkBase> **queue_front_ptr)
   {
@@ -396,7 +395,7 @@ namespace Ouro
   //
   template <typename ChunkBase>
   template <typename Desc>
-  __dpct_inline__ bool
+  bool
   QueueChunk<ChunkBase>::deleteElement(const Desc& d,const unsigned int position)
   {
     // Since we don't care about the value, we can simply delete it (no matter if enqueue might delete it as well even later)
@@ -413,7 +412,7 @@ namespace Ouro
   template <typename ChunkBase>
   template <typename Desc,typename QueueChunk<ChunkBase>::DEQUEUE_MODE Mode,
             typename MemoryManagerType>
-  __dpct_inline__ void QueueChunk<ChunkBase>::dequeue(const Desc& d,
+  void QueueChunk<ChunkBase>::dequeue(const Desc& d,
                                                       MemoryManagerType *memory_manager, const unsigned int position,
                                                       QueueDataType &element, QueueChunk<ChunkBase> **queue_front_ptr,
                                                       QueueChunk<ChunkBase> **queue_old_ptr, unsigned int *old_count)
@@ -440,7 +439,7 @@ namespace Ouro
   //
   template <typename ChunkBase>
   template <typename Desc>
-  __dpct_inline__ QueueChunk<ChunkBase> *
+  QueueChunk<ChunkBase> *
   QueueChunk<ChunkBase>::locateQueueChunkForPosition(const Desc& d,
                                                      const unsigned int v_position, const char *message)
   {
@@ -481,7 +480,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
-  __dpct_inline__ void
+  void
   QueueChunk<ChunkBase>::accessLinked(const unsigned position,
                                       QueueDataType &element)
   {
@@ -494,7 +493,7 @@ namespace Ouro
   //
   template <typename ChunkBase>
   template <typename Desc>
-  __dpct_inline__ QueueChunk<ChunkBase> *
+  QueueChunk<ChunkBase> *
   QueueChunk<ChunkBase>::accessLinked(const Desc& d,const unsigned position)
   {
     // Traverse to correct chunk and then access queue_ at correct position
@@ -505,7 +504,7 @@ namespace Ouro
   //
   template <typename ChunkBase>
   template <typename Desc>
-  __dpct_inline__ void
+  void
   QueueChunk<ChunkBase>::setBackPointer(const Desc& d,QueueChunk<ChunkBase> **queue_next_ptr)
   {
     // INFO: setNextPointer is only called, if all spots on this chunk called their enqueue, at which point next_ must have been set already
@@ -536,7 +535,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <typename ChunkBase>
-  __dpct_inline__ unsigned int
+  unsigned int
   QueueChunk<ChunkBase>::setFrontPointer(QueueChunk<ChunkBase> **queue_front_ptr)
   {
     // INFO: We can only remove a queue_chunk, if beforehand all enqueues have been done, so "next_" has to exist as well!
@@ -565,7 +564,7 @@ namespace Ouro
   //
   template <typename ChunkBase>
   template <typename Desc,typename MemoryManagerType>
-  __dpct_inline__ void QueueChunk<ChunkBase>::setOldPointer(const Desc& d,
+  void QueueChunk<ChunkBase>::setOldPointer(const Desc& d,
                                                             MemoryManagerType *memory_manager, QueueChunk<ChunkBase> **queue_old_ptr,
                                                             unsigned int *old_count, unsigned int free_count)
   {
