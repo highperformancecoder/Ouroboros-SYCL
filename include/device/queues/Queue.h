@@ -9,16 +9,16 @@ namespace Ouro
   {
   public:
     template <class Desc>
-    void init(const Desc&);
+    inline void init(const Desc&);
 
-    bool enqueue(index_t i);
+    inline bool enqueue(index_t i);
 
     template <int CHUNK_SIZE>
-    bool enqueueClean(index_t i, index_t *chunk_data_ptr);
+    inline bool enqueueClean(index_t i, index_t *chunk_data_ptr);
 
-    int dequeue(index_t &element);
+    inline int dequeue(index_t &element);
 
-    void resetQueue();
+    inline void resetQueue();
 
     index_t* queue_;
     int count_{ 0 };

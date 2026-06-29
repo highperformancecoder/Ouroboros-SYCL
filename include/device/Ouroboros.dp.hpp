@@ -208,8 +208,6 @@ namespace Ouro
     template <bool QUEUECHUNK = false>
     bool allocateChunk(index_t &chunk_index)
     {
-#ifdef DPCT_COMPATIBILITY_TEMP
-
       if(statistics_enabled)
         atomicAdd(&stats.chunkAllocationCount, 1);
 
@@ -232,8 +230,6 @@ namespace Ouro
       // chunk_index = atomicAdd(next_free_chunk, ChunkAddFactor_);
       chunk_locator->initChunkIndex(chunk_index);
       return (chunk_index + (QUEUECHUNK ? 1 : ChunkAddFactor_)) < maxChunks;
-
-#endif
     }
 
     void initializeQueues();

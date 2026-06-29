@@ -78,13 +78,13 @@ namespace Ouro
                               T allocationFunction);
   
     // Try to increase resources
-    bool tryReduce(int N);
+    inline bool tryReduce(int N);
 
     // Free a resource (number of pages only set for the thread which allocated stuff)
-    int signalExpected(unsigned long long N);
+    inline int signalExpected(unsigned long long N);
 
     // Free a resource (number of pages only set for the thread which allocated stuff)
-    int signal(unsigned long long N);
+    inline int signal(unsigned long long N);
 
     unsigned long long value{null_value};
     static constexpr unsigned long long null_value {(1ULL << (middle_mask_shift - 1))};

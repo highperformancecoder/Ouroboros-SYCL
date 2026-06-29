@@ -7,7 +7,7 @@ namespace Ouro
 {
   // ##############################################################################################################################################
   //
-  bool BulkSemaphore::tryReduce(int N)
+  inline bool BulkSemaphore::tryReduce(int N)
   {
     // Reduce by N-1
     uint32_t atomic_ret_val = atomicAdd(&value, Ouro::create2Complement(N)) & highest_value_mask;
@@ -135,14 +135,14 @@ namespace Ouro
 
   // ##############################################################################################################################################
   //
-  int BulkSemaphore::signalExpected(unsigned long long N)
+  inline int BulkSemaphore::signalExpected(unsigned long long N)
   {
     return static_cast<int>(atomicAdd(&value, N + create64BitSubAdder_expected(N)) & highest_value_mask) - null_value;
   }
 
   // ##############################################################################################################################################
   //
-  int BulkSemaphore::signal(unsigned long long N)
+  inline int BulkSemaphore::signal(unsigned long long N)
   {
     return static_cast<int>(atomicAdd(&value, N) & highest_value_mask) - null_value;
   }
