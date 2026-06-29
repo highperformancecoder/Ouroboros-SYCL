@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-//#include <dpct/dpct.hpp>
 #pragma once
 
 #include "Definitions.h"
@@ -56,13 +55,13 @@ namespace Ouro
     // ##########################################################################################################################
     // ##############################################################################################################################################
     // TODO: We can remove the chunk_index parameter
-    inline QueueChunk(QueueDataType *queue, index_t chunk_index,
+    QueueChunk(QueueDataType *queue, index_t chunk_index,
                                unsigned int virtual_start)
       : CommonChunk{0}, queue_{queue}, chunk_index_{chunk_index},
         virtual_start_{virtual_start} {cleanChunk();}
 
     // TODO: test with the real version later on
-    inline void cleanChunk()
+    void cleanChunk()
     {
       // for(auto i = 0U; i < num_spots_vec4; ++i)
       // {
@@ -77,32 +76,27 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    //        inline void enqueueInitial(const Desc&,const unsigned int position,
-    //                                            const QueueDataType element);
-
-    // ##############################################################################################################################################
-    //
     template <class Desc>
-    inline unsigned int enqueue(const Desc&,const unsigned int position,
+    unsigned int enqueue(const Desc&,const unsigned int position,
                                          const QueueDataType element);
 
     // ##############################################################################################################################################
     //
     template <class Desc>
-    inline unsigned int enqueueLinked(const Desc&,const unsigned int position,
+    unsigned int enqueueLinked(const Desc&,const unsigned int position,
                                                const QueueDataType element);
 
     // ##############################################################################################################################################
     //
     template <class Desc>
-    inline unsigned int
+    unsigned int
     enqueueLinkedv4(const Desc&,const unsigned int position, const index_t chunk_index,
                     const index_t start_index);
 
     // ##############################################################################################################################################
     //
     template <typename Desc, typename MemoryManagerType>
-    inline void
+    void
     enqueue(const Desc&,MemoryManagerType *memory_manager, const unsigned int position,
             const QueueDataType element, QueueChunk **queue_next_ptr,
             QueueChunk **queue_front_ptr, QueueChunk **queue_old_ptr,
@@ -111,7 +105,7 @@ namespace Ouro
     // ##############################################################################################################################################
     //
     template <typename Desc,typename MemoryManagerType>
-    inline void
+    void
     enqueueChunk(const Desc&, MemoryManagerType *memory_manager,
                  unsigned int start_position, const index_t chunk_index,
                  index_t pages_per_chunk, QueueChunk **queue_next_ptr,
@@ -121,7 +115,7 @@ namespace Ouro
     // ##############################################################################################################################################
     //
     template <typename Desc,typename MemoryManagerType>
-    inline bool dequeue(const Desc&, const unsigned int position,
+    bool dequeue(const Desc&, const unsigned int position,
                                  QueueDataType &element,
                                  MemoryManagerType *memory_manager,
                                  QueueChunk **queue_front_ptr);
@@ -129,19 +123,19 @@ namespace Ouro
     // ##############################################################################################################################################
     //
     template <class Desc>
-    inline bool deleteElement(const Desc&,const unsigned int position);
+    bool deleteElement(const Desc&,const unsigned int position);
 
     // ##############################################################################################################################################
     //
     template <typename Desc, DEQUEUE_MODE Mode, typename MemoryManagerType>
-    inline void
+    void
     dequeue(const Desc&, MemoryManagerType *memory_manager, const unsigned int position,
             QueueDataType &element, QueueChunk **queue_front_ptr,
             QueueChunk **queue_old_ptr, unsigned int *old_count);
 
     // ##############################################################################################################################################
     //
-    inline void access(const unsigned int position,
+    void access(const unsigned int position,
                                 QueueDataType &element)
     { 
       element = queue_[position]; 
@@ -149,15 +143,15 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    inline void accessLinked(const unsigned int position,
+    void accessLinked(const unsigned int position,
                                       QueueDataType &element);
     template <class Desc>
-    inline QueueChunk<ChunkBase> *
+    QueueChunk<ChunkBase> *
     accessLinked(const Desc&,const unsigned int position);
 
     // ##############################################################################################################################################
     //
-    inline bool checkVirtualStart(const unsigned int v_position)
+    bool checkVirtualStart(const unsigned int v_position)
     { 
       // The division is necessary since v_position is just one position on that chunk, so the division rounds it down automatically
       return (virtual_start_ / num_spots_) == (v_position / num_spots_);
@@ -165,14 +159,14 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    inline unsigned int extractCounterA(unsigned int counter)
+    unsigned int extractCounterA(unsigned int counter)
     {
       return counter & lower_mask;
     }
 
     // ##############################################################################################################################################
     //
-    inline unsigned int extractCounterB(unsigned long long counter)
+    unsigned int extractCounterB(unsigned long long counter)
     {
       return counter >> shift_value;
     }
@@ -180,16 +174,16 @@ namespace Ouro
     // ##############################################################################################################################################
     //
     template <class Desc>
-    inline void setBackPointer(const Desc&,QueueChunk **queue_next_ptr);
+    void setBackPointer(const Desc&,QueueChunk **queue_next_ptr);
 
     // ##############################################################################################################################################
     //
-    inline unsigned int setFrontPointer(QueueChunk **queue_front_ptr);
+    unsigned int setFrontPointer(QueueChunk **queue_front_ptr);
 
     // ##############################################################################################################################################
     //
     template <typename Desc,typename MemoryManagerType>
-    inline void setOldPointer(const Desc&,MemoryManagerType *memory_manager,
+    void setOldPointer(const Desc&,MemoryManagerType *memory_manager,
                                        QueueChunk **queue_old_ptr,
                                        unsigned int *old_count,
                                        unsigned int free_count);
@@ -197,27 +191,27 @@ namespace Ouro
     // ##############################################################################################################################################
     //
     template <class Desc>
-    inline QueueChunk *
+    QueueChunk *
     locateQueueChunkForPosition(const Desc&,const unsigned int v_position,
                                 const char *message = "");
 
     // ##############################################################################################################################################
     //
     template <typename Desc,typename FUNCTION>
-    inline void guaranteeWarpSyncPerChunk(const Desc&,index_t position,
+    void guaranteeWarpSyncPerChunk(const Desc&,index_t position,
                                                    const char *message,
                                                    FUNCTION f);
 
     // ##############################################################################################################################################
     //
-    inline bool goToNextChunk(index_t local_position, Mode mode)
+    bool goToNextChunk(index_t local_position, Mode mode)
     {
       return (local_position == ((mode == Mode::SINGLE) ? (num_spots_ - 1) : (num_spots_ - vector_width)));
     }
 
     // ##############################################################################################################################################
     //
-    inline index_t enqueueChunkAdditionFactor(Mode mode)
+    index_t enqueueChunkAdditionFactor(Mode mode)
     {
       return ((mode == Mode::SINGLE) ? 1 : vector_width);
     }
@@ -234,7 +228,7 @@ namespace Ouro
     // ##############################################################################################################################################
     //
     template <unsigned int ADD_VALUE = 1>
-    static inline bool
+    static bool
     checkChunkEmptyEnqueue(unsigned int enqueue_count)
     {
       // Check if atomic return value (plus what we added on top of it) is equal to counterB = 0 and counterA = num_spots
@@ -243,7 +237,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    static inline bool checkChunkEmptyDequeue(unsigned int dequeue_count)
+    static bool checkChunkEmptyDequeue(unsigned int dequeue_count)
     {
       // Check if atomic return value (plus what we added on top of it) is equal to counterB = 0 and counterA = num_spots
       return (dequeue_count - (1 << shift_value)) == (num_spots_);
@@ -251,7 +245,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    static inline QueueChunk *getAccess(memory_t *memory,
+    static QueueChunk *getAccess(memory_t *memory,
                                                  index_t chunk_index)
     {
       return reinterpret_cast<QueueChunk*>(Base::getMemoryAccess(memory, chunk_index)); 
@@ -259,7 +253,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    static inline QueueDataType *getData(memory_t *memory,
+    static QueueDataType *getData(memory_t *memory,
                                                   index_t chunk_index)
     {
       return reinterpret_cast<QueueDataType*>(Base::getData(memory, chunk_index));
@@ -267,7 +261,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    static inline QueueChunk *
+    static QueueChunk *
     initializeChunk(memory_t *memory, index_t chunk_index,
                     unsigned int virtual_start)
     {

@@ -140,8 +140,7 @@ namespace Ouro
   template <typename Data>
   void updateDataHost(sycl::queue& queue, Data& data)
   {
-    queue.memcpy(&data, data.d_memory, sizeof(Data))
-      .wait();
+    queue.memcpy(&data, data.d_memory, sizeof(Data)).wait();
   }
 
   // ##############################################################################################################################################

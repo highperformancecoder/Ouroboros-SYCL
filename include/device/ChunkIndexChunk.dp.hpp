@@ -36,17 +36,17 @@ namespace Ouro
     // Static Methods
     // ##########################################################################################################################
     // ##########################################################################################################################
-    static constexpr inline size_t size() {
+    static constexpr size_t size() {
       return meta_data_size_ + size_;
     }
 
-    static inline void *getData(memory_t *memory,
+    static void *getData(memory_t *memory,
                                          const index_t chunk_index)
     {
       return ChunkBase::getData(memory, chunk_index);
     }
 
-    inline void cleanChunk(unsigned int *data)
+    void cleanChunk(unsigned int *data)
     {
       for(auto i = 0U; i < (SIZE - CHUNK_METADATA_SIZE) / sizeof(unsigned int); ++i)
         {
@@ -55,14 +55,14 @@ namespace Ouro
         }
     }
 
-    inline void *getPage(memory_t *memory,
+    void *getPage(memory_t *memory,
                                   const index_t chunk_index,
                                   const uint32_t page_index)
     {
       return ChunkBase::getPage(memory, chunk_index, page_index, page_size);
     }
 
-    static inline void *getPage(memory_t *memory,
+    static void *getPage(memory_t *memory,
                                          const index_t chunk_index,
                                          const uint32_t page_index,
                                          const unsigned int page_size)
@@ -70,21 +70,21 @@ namespace Ouro
       return ChunkBase::getPage(memory, chunk_index, page_index, page_size);
     }
 
-    static inline ChunkIndexChunk *
+    static ChunkIndexChunk *
     getAccess(memory_t *memory, const index_t chunk_index)
     {
       return reinterpret_cast<ChunkIndexChunk*>(Base::getMemoryAccess(memory, chunk_index));
     }
 
     template <typename QI>
-    static inline index_t
+    static index_t
     getQueueIndexFromPage(memory_t *memory, index_t chunk_index)
     {
       auto chunk = reinterpret_cast<ChunkIndexChunk*>(Base::getMemoryAccess(memory, chunk_index));
       return QI::getQueueIndex(chunk->page_size);
     }
 
-    static inline ChunkIndexChunk *
+    static ChunkIndexChunk *
     initializeChunk(memory_t *memory, const index_t chunk_index,
                     const int available_pages, const uint32_t number_pages,
                     const unsigned int queue_position =
@@ -102,7 +102,7 @@ namespace Ouro
                         number_pages, queue_position);
     }
 
-    static inline ChunkIndexChunk *
+    static ChunkIndexChunk *
     initializeEmptyChunk(memory_t *memory, const index_t chunk_index,
                          const uint32_t number_pages,
                          const unsigned int queue_position =

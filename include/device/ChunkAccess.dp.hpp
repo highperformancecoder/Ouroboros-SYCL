@@ -33,9 +33,9 @@ namespace Ouro
     */
     MaskDataType availability_mask[MaximumBitMaskSize_]; // Bitmask of how
     // many are free
-
+  
     // Methods
-    inline ChunkAccess(int available_pages, uint32_t number_pages)
+    ChunkAccess(int available_pages, uint32_t number_pages)
       : count{available_pages}, size{int(number_pages)}
     {
       // Setup Availability mask
@@ -74,7 +74,7 @@ namespace Ouro
         }
     }
 
-    inline ChunkAccess(uint32_t number_pages)
+    ChunkAccess(uint32_t number_pages)
       : count{static_cast<int>(number_pages)}, size{int(number_pages)}
     {
       // Setup Availability mask
@@ -97,24 +97,24 @@ namespace Ouro
         }
     }
 
-    inline MaskDataType createBitPattern(int bit)
+    MaskDataType createBitPattern(int bit)
     {
       return ~(1U << bit);
     }
 
-    inline bool checkBitSet(MaskDataType value, int bit)
+    bool checkBitSet(MaskDataType value, int bit)
     {
       return (1U << bit) & value;
     }
 
     // Free up a page, manipulating the count and availability mask, locking required
     template <class Desc>
-    inline FreeMode freePage(const Desc&,index_t queue_index);
+    FreeMode freePage(const Desc&,index_t queue_index);
 
     // Try to allocate a page, locking required
     template <class Desc>
-    inline Mode allocPage(const Desc&,index_t &page_index);
+    Mode allocPage(const Desc&,index_t &page_index);
 
-    inline bool tryFlashChunk();
+    bool tryFlashChunk();
   };
 }

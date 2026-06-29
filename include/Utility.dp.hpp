@@ -52,7 +52,6 @@ namespace Ouro
   
   inline void sleep(unsigned int factor = 1)
   {
-#ifdef DPCT_COMPATIBILITY_TEMP
     //#if (DPCT_COMPATIBILITY_TEMP >= 700)
     //                //__nanosleep(SLEEP_TIME);
     //                /*
@@ -65,12 +64,11 @@ namespace Ouro
     //__threadfence();
     sycl::atomic_fence(sycl::memory_order::seq_cst, sycl::memory_scope::device);
     //	#endif
-#endif
   }
 
   inline int atomicAggInc(unsigned int *ptr)
   {
-    return Atomic<unsigned>(*ptr).fetch_add(1U);
+    return Atomic<unsigned>(*ptr).fetch_add(1);
   }
 
   template <class T, class U> T atomicAdd(T* x, U v)

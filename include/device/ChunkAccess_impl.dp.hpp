@@ -9,7 +9,7 @@ namespace Ouro
   //
   template <size_t SIZE, size_t SMALLEST_PAGE>
   template <typename Desc>
-  inline typename ChunkAccess<SIZE, SMALLEST_PAGE>::FreeMode
+  typename ChunkAccess<SIZE, SMALLEST_PAGE>::FreeMode
   ChunkAccess<SIZE, SMALLEST_PAGE>::freePage(const Desc&,index_t page_index)
   {
     const int mask_index = page_index / (Ouro::sizeofInBits<MaskDataType>());
@@ -33,7 +33,7 @@ namespace Ouro
   // ##############################################################################################################################################
   //
   template <size_t SIZE, size_t SMALLEST_PAGE>
-  inline bool ChunkAccess<SIZE, SMALLEST_PAGE>::tryFlashChunk()
+  bool ChunkAccess<SIZE, SMALLEST_PAGE>::tryFlashChunk()
   {
     // Try to reduce count to 0, if previous value is != size, someone tries do allocate from this chunk right now!
     return atomicCAS(&count, size, 0) == size;
@@ -43,7 +43,7 @@ namespace Ouro
   //
   template <size_t SIZE, size_t SMALLEST_PAGE>
   template <typename Desc>
-  inline typename ChunkAccess<SIZE, SMALLEST_PAGE>::Mode
+  typename ChunkAccess<SIZE, SMALLEST_PAGE>::Mode
   ChunkAccess<SIZE, SMALLEST_PAGE>::allocPage(const Desc& d,index_t &page_index)
   {
     int current_count{ 0 };

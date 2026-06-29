@@ -86,7 +86,7 @@ namespace Ouro
   //
   template <class OUROBOROS, class... OUROBOROSES>
   template <typename Desc>
-  inline void
+  void
   Ouroboros<OUROBOROS, OUROBOROSES...>::initQueues(const Desc& d, IndexQueue *d_base_chunk_reuse)
   {
     // --------------------------------------------------------
@@ -188,8 +188,12 @@ namespace Ouro
                      });
     }).wait_and_throw();
 
+    syclQueue.wait_and_throw();
+
     updateMemoryManagerHost(syclQueue,*this);
 
     initialized = true;
+
+    syclQueue.wait_and_throw();
   }
 }

@@ -13,7 +13,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  inline void
+  void
   PageQueueVA<CHUNK_TYPE>::init(const Desc& d,MemoryManagerType *memory_manager)
   {
     for (int i = d.item.get_global_linear_id();
@@ -37,7 +37,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  inline bool
+  bool
   PageQueueVA<CHUNK_TYPE>::enqueueChunk(const Desc& d, MemoryManagerType *memory_manager,
                                         index_t chunk_index,
                                         index_t pages_per_chunk)
@@ -116,7 +116,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename MemoryManagerType>
-  inline bool PageQueueVA<CHUNK_TYPE>::enqueueInitialChunk(
+  bool PageQueueVA<CHUNK_TYPE>::enqueueInitialChunk(
                                                                     MemoryManagerType *memory_manager, index_t chunk_index, int available_pages,
                                                                     index_t pages_per_chunk)
   {
@@ -159,7 +159,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  inline void *
+  void *
   PageQueueVA<CHUNK_TYPE>::allocPage(const Desc& d,MemoryManagerType *memory_manager)
   {
     using ChunkType = typename MemoryManagerType::ChunkType;
@@ -210,7 +210,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  inline void
+  void
   PageQueueVA<CHUNK_TYPE>::freePage(const Desc& d,MemoryManagerType *memory_manager,
                                     MemoryIndex index)
   {
@@ -230,7 +230,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  inline void
+  void
   PageQueueVA<CHUNK_TYPE>::enqueue(const Desc& d,MemoryManagerType *memory_manager,
                                    index_t index)
   {
@@ -272,7 +272,7 @@ namespace Ouro
   //
   template <typename CHUNK_TYPE>
   template <typename Desc,typename MemoryManagerType>
-  inline QueueChunk<typename CHUNK_TYPE::Base> *
+  QueueChunk<typename CHUNK_TYPE::Base> *
   PageQueueVA<CHUNK_TYPE>::accessQueueElement(const Desc& d,MemoryManagerType *memory_manager,
                                               index_t chunk_id,
                                               index_t v_position)

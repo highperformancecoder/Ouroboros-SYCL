@@ -1,5 +1,4 @@
 #include <sycl/sycl.hpp>
-//#include <dpct/dpct.hpp>
 #pragma once
 
 #include "device/Chunk.dp.hpp"
@@ -35,17 +34,17 @@ namespace Ouro
     // ##########################################################################################################################
     // ##########################################################################################################################
 
-    static constexpr inline size_t size() {
+    static constexpr size_t size() {
       return meta_data_size_ + size_;
     }
 
-    static inline void *getData(memory_t *memory,
+    static void *getData(memory_t *memory,
                                          const index_t chunk_index)
     {
       return Base::getData(memory, chunk_index);
     }
 
-    static inline void *getPage(memory_t *memory,
+    static void *getPage(memory_t *memory,
                                          const index_t chunk_index,
                                          const uint32_t page_index,
                                          const unsigned int page_size)
@@ -54,7 +53,7 @@ namespace Ouro
     }
 
     template <typename QI>
-    static inline index_t
+    static index_t
     getQueueIndexFromPage(memory_t *memory, index_t chunk_index)
     {
       auto chunk = reinterpret_cast<PageChunk*>(Base::getMemoryAccess(memory, chunk_index));
@@ -63,7 +62,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     //
-    static inline PageChunk *getAccess(memory_t *memory,
+    static PageChunk *getAccess(memory_t *memory,
                                                 index_t chunk_index)
     {
       return Base::template getMemoryAccess<PageChunk>(memory, chunk_index);
@@ -71,7 +70,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     // Initializer
-    static inline PageChunk *initializeChunk(memory_t *memory,
+    static PageChunk *initializeChunk(memory_t *memory,
                                                       index_t chunk_index,
                                                       uint32_t number_pages)
     {
@@ -88,7 +87,7 @@ namespace Ouro
 
     // ##############################################################################################################################################
     // Initializer
-    static inline PageChunk *
+    static PageChunk *
     initializeChunk(memory_t *memory, index_t chunk_index,
                     const int available_pages, uint32_t number_pages)
     {

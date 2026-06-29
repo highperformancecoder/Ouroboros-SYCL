@@ -19,7 +19,7 @@ namespace Ouro
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
   template <typename Desc>
-  inline void *OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE,
+  void *OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE,
                                         NUMBER_QUEUES>::allocPage(const Desc& d,size_t size)
   {
     if(statistics_enabled)
@@ -35,7 +35,7 @@ namespace Ouro
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
   template <typename Desc>
-  inline void
+  void
   OuroborosChunks<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage
   (const Desc& d, MemoryIndex index)
   {
@@ -59,7 +59,7 @@ namespace Ouro
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
   template <typename Desc>
-  inline void *
+  void *
   OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::allocPage(const Desc& d, size_t size)
   {
     if(statistics_enabled)
@@ -74,7 +74,7 @@ namespace Ouro
   template <template <class /*CHUNK_TYPE*/> class QUEUE_TYPE, typename CHUNK_BASE,
             unsigned int SMALLEST_SIZE, unsigned int NUMBER_QUEUES>
   template <typename Desc>
-  inline void
+  void
   OuroborosPages<QUEUE_TYPE, CHUNK_BASE, SMALLEST_SIZE, NUMBER_QUEUES>::freePage
   (const Desc& d, MemoryIndex index)
   {
@@ -97,7 +97,7 @@ namespace Ouro
   //
   template <class OUROBOROS, class... OUROBOROSES>
   template <typename Desc>
-  inline void *Ouroboros<OUROBOROS, OUROBOROSES...>::malloc(const Desc& d, size_t size)
+  void *Ouroboros<OUROBOROS, OUROBOROSES...>::malloc(const Desc& d, size_t size)
   {
     if(size <= ConcreteOuroboros::LargestPageSize_)
       {
@@ -110,7 +110,7 @@ namespace Ouro
   //
   template <class OUROBOROS, class... OUROBOROSES>
   template <typename Desc>
-  inline void Ouroboros<OUROBOROS, OUROBOROSES...>::free(const Desc& d, void *ptr)
+  void Ouroboros<OUROBOROS, OUROBOROSES...>::free(const Desc& d, void *ptr)
   {
     if(!validOuroborosPointer(ptr))
       {
@@ -130,7 +130,7 @@ namespace Ouro
   //
   template <class OUROBOROS, class... OUROBOROSES>
   template <typename Desc>
-  inline void
+  void
   Ouroboros<OUROBOROS, OUROBOROSES...>::freePageRecursive(const Desc& d, unsigned int page_size,
                                                           MemoryIndex index)
   {
@@ -161,11 +161,11 @@ namespace Ouro
 
   // ##############################################################################################################################################
   //
- template <typename MemoryManagerType>
- void updateMemoryManagerDevice(sycl::queue& queue, MemoryManagerType& memory_manager)
- {
-   queue.memcpy(memory_manager.memory.d_memory, &memory_manager,
-                sizeof(memory_manager))
-     .wait();
- }
+  template <typename MemoryManagerType>
+  void updateMemoryManagerDevice(sycl::queue& queue, MemoryManagerType& memory_manager)
+  {
+    queue.memcpy(memory_manager.memory.d_memory, &memory_manager,
+                 sizeof(memory_manager))
+      .wait();
+  }
 }

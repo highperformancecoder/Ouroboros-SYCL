@@ -67,6 +67,7 @@ void d_testFree(Ouro::ThreadAllocator<MemoryManagerType>& mm, int** verification
 
 int main(int argc, char* argv[])
 {
+  // note - set ONEAPI_DEVICE_SELECTOR="*:gpu" environment variable to force running on GPU
   sycl::queue q_ct1({sycl::property::queue::enable_profiling()});
   std::cout << "Usage: num_allocations allocation_size_in_bytes\n";
   int num_allocations{8192};
@@ -81,6 +82,8 @@ int main(int argc, char* argv[])
           allocation_size_byte = atoi(argv[2]);
         }
     }
+
+  std::cout<<q_ct1.get_device().get_info<sycl::info::device::name>()<<std::endl;
   // num_allocations needs to be a multiple of blocksize for certain SYCL devices.
   num_allocations=(num_allocations/blockSize)*blockSize;
   allocation_size_byte = Ouro::alignment(allocation_size_byte, sizeof(int));

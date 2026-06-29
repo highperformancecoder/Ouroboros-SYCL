@@ -38,43 +38,43 @@ namespace Ouro
 
     // Methods
     template <typename MemoryManagerType>
-    inline bool preFillQueue(MemoryManagerType *memory_manager,
+    bool preFillQueue(MemoryManagerType *memory_manager,
                                       index_t chunk_index,
                                       index_t pages_per_chunk)
     {
       return enqueueChunk(memory_manager, chunk_index, pages_per_chunk);
     }
 
-    inline uint32_t getCount() const
+    uint32_t getCount() const
     {
       return semaphore.getCount();
     }
 
-    inline index_t computeChunkID(index_t virtual_position)
+    index_t computeChunkID(index_t virtual_position)
     {
       return (virtual_position / QueueChunkType::num_spots_) % size_;
     }
 
     template <typename Desc,typename MemoryManagerType>
-    inline void init(const Desc&,MemoryManagerType *memory_manager);
+    void init(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename Desc,typename MemoryManagerType>
-    inline void *allocPage(const Desc&,MemoryManagerType *memory_manager);
+    void *allocPage(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename Desc,typename MemoryManagerType>
-    inline void freePage(const Desc&,MemoryManagerType *memory_manager,
+    void freePage(const Desc&,MemoryManagerType *memory_manager,
                                   MemoryIndex index);
 
     template <typename Desc,typename MemoryManagerType>
-    inline QueueChunkType *
+    QueueChunkType *
     accessQueueElement(const Desc&,MemoryManagerType *memory_manager, index_t chunk_id,
                        index_t v_position);
     template <typename Desc,typename MemoryManagerType>
-    inline void
+    void
     enqueue(const Desc&,MemoryManagerType *memory_manager, index_t index,
             typename MemoryManagerType::ChunkType *chunk);
     template <typename Desc,typename MemoryManagerType>
-    inline bool
+    bool
     enqueueChunk(const Desc&,MemoryManagerType *memory_manager, index_t chunk_index,
                  index_t pages_per_chunk,
                  typename MemoryManagerType::ChunkType *chunk);

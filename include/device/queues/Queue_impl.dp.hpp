@@ -5,7 +5,7 @@
 
 namespace Ouro
 {
-  inline void IndexQueue::resetQueue()
+  void IndexQueue::resetQueue()
   {
     count_ = 0;
     front_ = 0;
@@ -13,7 +13,7 @@ namespace Ouro
   }
 
   template <class Desc>
-  inline void IndexQueue::init(const Desc& d)
+  void IndexQueue::init(const Desc& d)
   {
     for (int i = d.item.get_global_linear_id();
          i < size_;
@@ -23,7 +23,7 @@ namespace Ouro
       }
   }
 
-  inline bool IndexQueue::enqueue(index_t i)
+  bool IndexQueue::enqueue(index_t i)
   {
     int fill = atomicAdd(&count_, 1);
     if (fill < static_cast<int>(size_))
@@ -44,7 +44,7 @@ namespace Ouro
   }
 
   template <int CHUNK_SIZE>
-  inline bool IndexQueue::enqueueClean(index_t i,
+  bool IndexQueue::enqueueClean(index_t i,
                                                 index_t *chunk_data_ptr)
   {
     for(auto i = 0U; i < (CHUNK_SIZE / (sizeof(index_t))); ++i)
@@ -65,7 +65,7 @@ namespace Ouro
     return enqueue(i);
   }
 
-  inline int IndexQueue::dequeue(index_t &element)
+  int IndexQueue::dequeue(index_t &element)
   {
     int readable = atomicSub(&count_, 1);
     if (readable <= 0)

@@ -34,31 +34,31 @@ namespace Ouro
 
     // Methods
     template <class Desc>
-    inline bool enqueue(const Desc&,index_t chunk_index, ChunkType *chunk);
+    bool enqueue(const Desc&,index_t chunk_index, ChunkType *chunk);
 
     template <class Desc>
-    inline bool enqueueChunk(const Desc&,index_t chunk_index,
+    bool enqueueChunk(const Desc&,index_t chunk_index,
                                       index_t pages_per_chunk,
                                       ChunkType *chunk);
 
     template <typename Desc,typename MemoryManagerType>
-    inline void init(const Desc&,MemoryManagerType *memory_manager);
+    void init(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename MemoryManagerType>
-    inline bool
+    bool
     enqueueInitialChunk(MemoryManagerType *memory_manager,
                         index_t chunk_index, int available_pages,
                         index_t pages_per_chunk);
 
     template <typename Desc,typename MemoryManagerType>
-    inline void *allocPage(const Desc&,MemoryManagerType *memory_manager);
+    void *allocPage(const Desc&,MemoryManagerType *memory_manager);
 
     template <typename Desc,typename MemoryManagerType>
-    inline void freePage(const Desc&,MemoryManagerType *memory_manager,
+    void freePage(const Desc&,MemoryManagerType *memory_manager,
                                   MemoryIndex index);
 
     template <typename MemoryManagerType>
-    inline bool
+    bool
     preFillQueue(MemoryManagerType *memory_manager, index_t chunk_index,
                  index_t pages_per_chunk, ChunkType *chunk = nullptr)
     {
@@ -73,7 +73,7 @@ namespace Ouro
       back_ = 0;
     }
 
-    inline uint32_t getCount()
+    uint32_t getCount()
     {
       return semaphore.getCount();
     }

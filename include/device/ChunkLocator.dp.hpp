@@ -11,7 +11,7 @@ namespace Ouro
      *	\return						Void
      *	\param[in]	num_chunks		Number of chunks */
     template <class Desc>
-    inline void init(const Desc& d, unsigned int num_chunks)
+    void init(const Desc& d, unsigned int num_chunks)
     {
       for (int i = d.item.get_global_linear_id();
            i < Ouro::divup(num_chunks, num_bits);
@@ -24,7 +24,7 @@ namespace Ouro
     /*!	\brief						Set corresponding bit for chunk index
      *	\return						Void
      *	\param[in]	chunk_index		Which chunk to set */
-    inline void initChunkIndex(unsigned int chunk_index)
+    void initChunkIndex(unsigned int chunk_index)
     {
       //atomicOr(&d_chunk_flags[chunk_index >> division_factor], 1 << Ouro::modPower2<num_bits>(chunk_index));
       Ouro::Atomic<int>(d_chunk_flags[chunk_index >> division_factor]) |= 1 << Ouro::modPower2<num_bits>(chunk_index);
@@ -33,7 +33,7 @@ namespace Ouro
     /*!	\brief						Given a potential chunk_index, check if it is a correct index, otherwise search lower until we find one
      *	\return						return valid index
      *	\param[in]	chunk_index		Potential chunk index that needs to be checked */
-    inline unsigned int getChunkIndex(unsigned int chunk_index)
+    unsigned int getChunkIndex(unsigned int chunk_index)
     {
       auto index = chunk_index >> division_factor; // Get index position
       auto mask = (1U << (Ouro::modPower2<num_bits>(chunk_index) + 1)) - 1; // Only look at the bits from the index position down so we can use built-ins
