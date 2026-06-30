@@ -170,20 +170,20 @@ namespace Ouro
       {
         // Clean all chunks
         syclQueue.submit([&](auto& h) {
-          sycl::stream out(10000,1000,h);
+          //sycl::stream out(10000,1000,h);
           h.parallel_for(sycl::nd_range<1>(grid_size, block_size),
                          [=](sycl::nd_item<1> item) {
-                           Ouro::SyclDesc<1,sycl::stream> d{item,out};
+                           Ouro::SyclDesc<1> d{item};
                            d_cleanChunks(d,manager, 0);
                          });
         }).wait_and_throw();
       }
 
     syclQueue.submit([&](auto& h) {
-      sycl::stream out(1000000,1000,h);
+      //sycl::stream out(256,32,h); // nb - use printf for debugging
       h.parallel_for(sycl::nd_range<1>(grid_size, block_size),
                      [=](sycl::nd_item<1> item) {
-                       Ouro::SyclDesc<1,sycl::stream> d{item,out};
+                       Ouro::SyclDesc<1> d{item};
                        d_initializeOuroborosQueues(d,manager);
                      });
     }).wait_and_throw();
