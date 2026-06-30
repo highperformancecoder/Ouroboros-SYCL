@@ -84,6 +84,7 @@ namespace Ouro
           {
           case Mode::AllocatePage: return;
           case Mode::AllocateChunk: allocationFunction(); break;
+          default: break;
           }
         
 //        // serialise the allocation function within a subgroup

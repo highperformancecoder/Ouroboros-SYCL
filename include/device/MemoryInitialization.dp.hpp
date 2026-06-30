@@ -188,8 +188,6 @@ namespace Ouro
                      });
     }).wait_and_throw();
 
-    syclQueue.wait_and_throw();
-
     updateMemoryManagerHost(syclQueue,*this);
 
     initialized = true;
